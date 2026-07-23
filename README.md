@@ -79,6 +79,9 @@ effective temperature, 0.7--5.3 in `logg`, -2.5--0.5 in `[M/H]`, -0.1--0.5 in
 about -0.5--0.5 dex relative to the base metal mixture. The direct-abundance
 interface uses the same stellar range and accepts -0.5--0.5 in each `[X/Fe]`.
 Exact contracts are documented in the atmosphere README.
+The complete initializer training corpora are available as an optional
+[v1.3 data bundle](source_data_files/atmosphere_emulator/TRAINING_CORPORA.md);
+they are not downloaded for ordinary installation.
 
 ## Basic workflow
 

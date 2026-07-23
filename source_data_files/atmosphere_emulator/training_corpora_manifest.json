@@ -1,0 +1,121 @@
+{
+  "format": "payne_zero_atmosphere_training_corpora_release_v1",
+  "release": "v1.3",
+  "bundle": "payne-zero-v1.3-atmosphere-training-corpora.tar.gz",
+  "distribution": "https://github.com/tingyuansen/payne-zero/releases/tag/v1.3",
+  "complete_for_paper_atmosphere_training": true,
+  "total_atmospheres": 188039,
+  "total_corpus_bytes": 620721012,
+  "depth_layers": 80,
+  "target_fields": [
+    "column_mass",
+    "temperature",
+    "gas_pressure",
+    "electron_density",
+    "rosseland_opacity",
+    "radiative_acceleration"
+  ],
+  "families": {
+    "five_label": {
+      "records": 52199,
+      "label_fields": [
+        "effective_temperature",
+        "log_surface_gravity",
+        "metallicity",
+        "alpha_enhancement",
+        "microturbulence_km_s"
+      ],
+      "label_storage": "labels_json",
+      "path": "five_label/strict_truth_52199.npz",
+      "bytes": 199485286,
+      "sha256": "092cf3c4a0c6075c2dde05803bec62b1d0eb6ec36d5794fe400870c505b44284",
+      "atmosphere_profiles_shape": [
+        52199,
+        80,
+        6
+      ]
+    },
+    "cno8": {
+      "records": 53824,
+      "label_fields": [
+        "effective_temperature",
+        "log_surface_gravity",
+        "metallicity",
+        "alpha_enhancement",
+        "microturbulence_km_s",
+        "carbon_enhancement",
+        "nitrogen_enhancement",
+        "oxygen_enhancement"
+      ],
+      "label_storage": "labels_json",
+      "path": "cno8/strict_truth_53824.npz",
+      "bytes": 232954096,
+      "sha256": "d7bc1332b77edcbe0226adf87e7ef5e943f193a749493added5527cf6ccf6909",
+      "atmosphere_profiles_shape": [
+        53824,
+        80,
+        6
+      ]
+    },
+    "direct_xh": {
+      "records": 82016,
+      "stellar_label_fields": [
+        "effective_temperature",
+        "log_surface_gravity",
+        "microturbulence_km_s"
+      ],
+      "abundance_storage": "[X/H] columns for atomic numbers 3 through 99",
+      "files": [
+        {
+          "path": "direct_xh_experimental/training_corpora/campaign_v1/campaign_only.npz",
+          "records": 4918,
+          "bytes": 8711177,
+          "sha256": "8ee2828f23c65d89716b18c33c2fefc6ae1bab21e099eb7c40fccd073dbb1b23"
+        },
+        {
+          "path": "direct_xh_experimental/training_corpora/campaign_refinement_v1/campaign_only.npz",
+          "records": 3103,
+          "bytes": 6587573,
+          "sha256": "bc5ef70fcbb7d69ef866cd62099d86488a0fbfe42f62b72892df57421091f919"
+        },
+        {
+          "path": "direct_xh_experimental/training_corpora/campaign_high_order_v1/campaign_only.npz",
+          "records": 266,
+          "bytes": 730742,
+          "sha256": "52bb5eae46ec4474d60ffb3a7ace5ba038a1e670a8b67f9870659c39998b136e"
+        },
+        {
+          "path": "direct_xh_experimental/training_corpora/20260717_incremental_3/primary.npz",
+          "records": 45903,
+          "bytes": 109744607,
+          "sha256": "69d843ef54947edd058c7ea1fbb7858709d0cc001a8103828c42bc28e286723d"
+        },
+        {
+          "path": "direct_xh_experimental/training_corpora/20260717_incremental_3/quota.npz",
+          "records": 5155,
+          "bytes": 9974554,
+          "sha256": "23a3d306cd8b4720a16ed1b92fb53360c16d7e9b657a1e2157737c12e697bba8"
+        },
+        {
+          "path": "direct_xh_experimental/training_corpora/campaign_state_expansion_v1/campaign_only.npz",
+          "records": 22671,
+          "bytes": 52532977,
+          "sha256": "ec563b4fd6e851201c0a4688b30d93674e103ed15438a565c088125c7e208303"
+        }
+      ],
+      "atmosphere_profiles_shape_per_file": [
+        "records",
+        80,
+        6
+      ]
+    }
+  },
+  "paper_training_corpus_audit": {
+    "five_label_corpus_required": true,
+    "cno8_corpus_required": true,
+    "direct_xh_corpora_required": true,
+    "additional_atmosphere_training_corpora_required": false,
+    "runtime_checkpoints_distributed_by_git_lfs": true,
+    "spectra_and_figure_products_are_training_corpora": false
+  }
+}

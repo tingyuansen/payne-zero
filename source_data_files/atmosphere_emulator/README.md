@@ -36,8 +36,9 @@ representations followed by neural label maps.
 The five-label model was trained from 52,199 converged atmospheres, the
 eight-label model from 53,824 independently solved CNO atmospheres, and the
 direct-abundance model from 82,016 independently varied complete mixtures.
-The training corpora are not runtime inputs and are not distributed with the
-public software.
+The training corpora are not runtime inputs. They are available as a separate,
+hash-verified [`v1.3` release bundle](TRAINING_CORPORA.md) so the runtime
+checkout remains compact.
 
 ## Installation and contracts
 

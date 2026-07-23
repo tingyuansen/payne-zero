@@ -18,8 +18,11 @@ direct-abundance checkpoint.
 
 At runtime, `PAYNE_ZERO_DATA_ROOT` can relocate the complete data tree and
 `PAYNE_ZERO_SOURCE_CATALOG_ROOT` can override only the source catalogs.
-Initializer training corpora and research evidence are not runtime inputs and
-are not distributed with the public software.
+Initializer training corpora are not runtime inputs. The complete 52,199-row
+five-label, 53,824-row CNO8, and 82,016-row direct-abundance corpora are
+available as an optional, hash-verified
+[release bundle](atmosphere_emulator/TRAINING_CORPORA.md). Other research
+evidence remains outside the runtime software.
 
 Each subdirectory README documents its stored arrays and physical meanings.
 The structured atmosphere exchanged by the two packages follows
