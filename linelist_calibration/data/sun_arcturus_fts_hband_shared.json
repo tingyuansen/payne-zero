@@ -1,0 +1,68 @@
+{
+  "absolute_parameter_fields": [],
+  "artifact": "linelist_calibration/data/sun_arcturus_fts_hband_shared.npz",
+  "artifact_sha256": "7d018e0cb5867f8ccdba8849dadd90c352f2cf56147b52ff05e08ec3a11e71cd",
+  "calibration_name": "sun_arcturus_fts_hband_shared",
+  "calibration_provenance": {
+    "atmosphere_policy": "fixed converged atmosphere for each standard",
+    "best_objective": 0.00023034607201248208,
+    "bounds_dex": {
+      "loggf": [
+        -3.0,
+        2.5
+      ],
+      "radiative": [
+        -2.0,
+        2.0
+      ],
+      "stark": [
+        -2.0,
+        2.0
+      ],
+      "vdw": [
+        -2.0,
+        2.0
+      ]
+    },
+    "initialization": "key-aligned mean of independent Sun and Arcturus fits",
+    "objective_evaluations": 41,
+    "optimizer_iterations": 40,
+    "parameter_families": [
+      "loggf",
+      "vdw",
+      "radiative",
+      "stark"
+    ],
+    "scope": "shared fixed-atmosphere Sun and Arcturus FTS calibration",
+    "standards": [
+      "Sun center-of-disk FTS atlas",
+      "Arcturus full-disk FTS atlas, summer epoch",
+      "Arcturus full-disk FTS atlas, winter epoch"
+    ],
+    "weighting": "equal stellar weight; equal weight for two Arcturus epochs"
+  },
+  "component_count": 42886,
+  "correction_fields": [
+    "delta_loggf_dex",
+    "delta_log_vdw_dex",
+    "delta_log_radiative_dex",
+    "delta_log_stark_dex"
+  ],
+  "evidence_role": "frozen shared-calibration fit summary",
+  "evidence_sha256": "d336ddf6e610cc23122b06a7f41e14f534c8997924ecd0ac8b45ea13680a7946",
+  "group_count": 25281,
+  "grouping": {
+    "component_identity_fields": [
+      "component_row_signature_sha256",
+      "component_occurrence_ordinal"
+    ],
+    "definition": "physical transition groups with opaque canonical source-row hashes and duplicate occurrence ordinals",
+    "sha256": "362a75a22ca6a25b004ddc4163616af92d7917665ad91f7e45002c049175ed66"
+  },
+  "schema": 4,
+  "source_catalog_role": "exact user-local atomic source catalog",
+  "source_catalog_sha256": "4eafa927c02a4f74401523149a44e35239f2aaecb4a64f2905a4cd5530c2dde7",
+  "source_hash_required_for_application": true,
+  "source_parameter_role": "frozen survey-selected shared Sun and Arcturus parameter vector",
+  "source_parameter_sha256": "67777476c5ec3597265d922c985f1529ad8212000f1725a8da425bcd8e754ad8"
+}

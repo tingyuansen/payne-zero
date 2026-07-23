@@ -1,0 +1,134 @@
+{
+  "format": "payne_zero_direct_xh_experimental_asset_v1",
+  "status": "experimental_opt_in_only",
+  "automatic_dispatch": false,
+  "decoded_profile_is_final_atmosphere": false,
+  "exact_solver_after_decode_is_mandatory": true,
+  "checkpoint": {
+    "path": "checkpoint.pt",
+    "sha256": "1b8e1db1514956dfbf890eb5ae96e01bd918acfc86be538b6b77230332104243",
+    "bytes": 87663568,
+    "format": "payne_zero_direct_xh_complete_atmosphere_standalone_experimental_v1",
+    "schema_version": 1,
+    "architecture": "set_encoded",
+    "input_dim": 84,
+    "output_dim": 160,
+    "width": 2048,
+    "hidden_layers": 6,
+    "abundance_latent_dim": 128
+  },
+  "labels": {
+    "stellar_state_order": [
+      "5040/effective_temperature",
+      "log_surface_gravity",
+      "microturbulence_km_s",
+      "[Fe/H]"
+    ],
+    "abundance_order": "80 finite-solar non-Fe [X/Fe] values in increasing atomic number",
+    "public_abundance_order": "81 finite-solar [X/H] values in increasing atomic number",
+    "public_abundances_required": 81,
+    "omitted_public_abundance_default": null,
+    "sentinel_slots": "16 no-solar-reference solver slots inherit [Fe/H]",
+    "abundance_quantization_dex": 0.01,
+    "support_policy": "reject without projection or lower-dimensional fallback",
+    "support": {
+      "effective_temperature": [4000.0, 10500.0],
+      "log_surface_gravity": [0.7, 5.3],
+      "microturbulence_km_s": [0.5, 4.0],
+      "iron_abundance_relative_to_hydrogen": [-2.5, 0.5],
+      "element_abundance_relative_to_iron": [-0.5, 0.5]
+    }
+  },
+  "training": {
+    "independent_direct_xh_truth_only": true,
+    "source_policy": "independently generated explicit_* exact atmospheres only",
+    "total_records": 82016,
+    "train_records": 71660,
+    "fit_validation_records": 9733,
+    "internal_check_records_unused_for_fit": 313,
+    "unused_external_gate_records": 310,
+    "split_sum_verified": true,
+    "five_label_records": 0,
+    "cno8_records": 0,
+    "matched_cno_records": 0,
+    "baseline_control_records": 0,
+    "corpora": [
+      {
+        "name": "campaign_v1/campaign_only.npz",
+        "path": "training_corpora/campaign_v1/campaign_only.npz",
+        "records": 4918,
+        "bytes": 8711177,
+        "sha256": "8ee2828f23c65d89716b18c33c2fefc6ae1bab21e099eb7c40fccd073dbb1b23"
+      },
+      {
+        "name": "campaign_refinement_v1/campaign_only.npz",
+        "path": "training_corpora/campaign_refinement_v1/campaign_only.npz",
+        "records": 3103,
+        "bytes": 6587573,
+        "sha256": "bc5ef70fcbb7d69ef866cd62099d86488a0fbfe42f62b72892df57421091f919"
+      },
+      {
+        "name": "campaign_high_order_v1/campaign_only.npz",
+        "path": "training_corpora/campaign_high_order_v1/campaign_only.npz",
+        "records": 266,
+        "bytes": 730742,
+        "sha256": "52bb5eae46ec4474d60ffb3a7ace5ba038a1e670a8b67f9870659c39998b136e"
+      },
+      {
+        "name": "20260717_incremental_3/primary.npz",
+        "path": "training_corpora/20260717_incremental_3/primary.npz",
+        "records": 45903,
+        "bytes": 109744607,
+        "sha256": "69d843ef54947edd058c7ea1fbb7858709d0cc001a8103828c42bc28e286723d"
+      },
+      {
+        "name": "20260717_incremental_3/quota.npz",
+        "path": "training_corpora/20260717_incremental_3/quota.npz",
+        "records": 5155,
+        "bytes": 9974554,
+        "sha256": "23a3d306cd8b4720a16ed1b92fb53360c16d7e9b657a1e2157737c12e697bba8"
+      },
+      {
+        "name": "campaign_state_expansion_v1/campaign_only.npz",
+        "path": "training_corpora/campaign_state_expansion_v1/campaign_only.npz",
+        "records": 22671,
+        "bytes": 52532977,
+        "sha256": "ec563b4fd6e851201c0a4688b30d93674e103ed15438a565c088125c7e208303"
+      }
+    ],
+    "corpora_packaged": false,
+    "corpora_package_policy": "retained in the separate paper research archive; never loaded during runtime inference",
+    "corpora_packaged_records": 0,
+    "corpora_packaged_bytes": 0
+  },
+  "unused_external_gate_rows": {
+    "records": 310,
+    "used_for_fit": false,
+    "identity_manifest_packaged": false,
+    "description": "The checkpoint records these rows as unused external-gate rows. They are not the independently reserved standalone external panel."
+  },
+  "standalone_external_panel": {
+    "status": "reserved_unmaterialized",
+    "reserved_parent_groups": 24,
+    "identity_manifest_packaged": false,
+    "evaluated": false
+  },
+  "release_gate": {
+    "passed": false,
+    "reason": "The expanded model improved the matched learning curve but missed the frozen internal profile and restart-flux gates. The reserved standalone external panel was therefore not materialized or evaluated.",
+    "consequence": "This checkpoint may initialize a mandatory exact solve but is not a released atmosphere predictor."
+  },
+  "provenance": {
+    "legacy_checkpoint_verified_from_two_independent_copies": true,
+    "legacy_campaign_checkpoint_sha256": "f9d788f1ab70f3298c5ce063de72ce62b6810b4393a8d022f49985919758fe10",
+    "checkpoint_equivalence_path": "checkpoint_equivalence.json",
+    "checkpoint_equivalence_sha256": "07f2eff6b0f449af1bcf6e4b8a35d1605072fb164b3bd4fd1ac296f5b0a1e1d8",
+    "learning_curve_audit_sha256": "173217163e6b6b0b7900adb58c9c3b285822f78e2d9e4c746790e6db5859d64e",
+    "internal_assessment_sha256": "0c16a086465527492fc299f63da133a9bae813bd1fd2d2fcb921e6bb6fe08c89",
+    "closure_summary_sha256": "fa6248333124c9739cf2af910d9880820e1ca2291afdc7b3598ba62109926862",
+    "reference_payload_sha256": "60920eccff0ecfb40a38114905e2ba24b67bdcdab8700c46ee1e673325a6d3f5",
+    "reference_payload_packaged": false,
+    "reference_payload_records": 0,
+    "reference_payload_bytes": 0
+  }
+}

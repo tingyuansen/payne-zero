@@ -1,0 +1,25 @@
+Payne Zero attribution notice
+=============================
+
+Payne Zero implements the numerical structure and scientific data conventions
+of the Kurucz ATLAS12 and SYNTHE programs. Please cite the relevant Kurucz
+programs and line-data publications when using this work.
+
+The immediate implementation and validation lineage is pyKurucz:
+
+  Elliot M. Kim and Yuan-Sen Ting, pyKurucz: A Pure Python Reimplementation of
+  Kurucz ATLAS12 and SYNTHE for Self-Consistent Stellar Atmospheres and Spectra
+  (2026), https://arxiv.org/abs/2603.11693
+
+pyKurucz is MIT licensed, copyright (c) 2026 Elliot M. Kim and Yuan-Sen Ting.
+
+The representative APOGEE line-spread-function builder follows the public
+jobovy/apogee implementation, copyright (c) 2013 Jo Bovy, distributed under the
+BSD 3-Clause License. APOGEE survey products are provided by SDSS. The solar
+and Arcturus calibration overlays were derived from the NSO/Kitt Peak solar FTS
+atlas and the Hinkle, Wallace & Livingston Arcturus atlas. The distributed
+overlays contain fitted corrections, not atlas spectra.
+
+Payne Zero-authored source code and generated model products are covered by the
+repository LICENSE. Upstream programs, catalogs, tables, and survey products
+retain their original attribution and terms.

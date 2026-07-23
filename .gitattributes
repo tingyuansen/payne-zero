@@ -1,0 +1,5 @@
+source_data_files/**/*.npy filter=lfs diff=lfs merge=lfs -text
+source_data_files/**/*.npz filter=lfs diff=lfs merge=lfs -text
+source_data_files/**/*.pt filter=lfs diff=lfs merge=lfs -text
+fitter/**/*.npz filter=lfs diff=lfs merge=lfs -text
+linelist_calibration/**/*.npz filter=lfs diff=lfs merge=lfs -text

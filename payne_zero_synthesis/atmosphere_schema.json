@@ -1,0 +1,41 @@
+{
+  "schema_version": 4,
+  "format": "npz",
+  "description": "Native Payne Zero synthesis-ready structured atmosphere.",
+  "required_arrays": [
+    {"name": "temperature", "shape": ["n_depth"], "unit": "K"},
+    {"name": "gas_pressure", "shape": ["n_depth"], "unit": "dyne cm^-2"},
+    {"name": "electron_density", "shape": ["n_depth"], "unit": "cm^-3"},
+    {"name": "mass_density", "shape": ["n_depth"], "unit": "g cm^-3"},
+    {"name": "column_mass", "shape": ["n_depth"], "unit": "g cm^-2"},
+    {"name": "partition_normalized_populations", "shape": ["n_depth", 6, 139], "unit": "cm^-3 per partition function"},
+    {"name": "ion_stage_populations", "shape": ["n_depth", 6, 139], "unit": "cm^-3"},
+    {"name": "fractional_doppler_widths", "shape": ["n_depth", 6, 139], "unit": "dimensionless v/c"},
+    {"name": "hydrogen_neutral_population", "shape": ["n_depth"], "unit": "cm^-3"},
+    {"name": "helium_neutral_population", "shape": ["n_depth"], "unit": "cm^-3"},
+    {"name": "helium_singly_ionized_population", "shape": ["n_depth"], "unit": "cm^-3"},
+    {"name": "molecular_hydrogen_population", "shape": ["n_depth"], "unit": "cm^-3"},
+    {"name": "hydrogen_partition_normalized_ion_stage_populations", "shape": ["n_depth", 2], "unit": "cm^-3 per partition function"},
+    {"name": "carbon_partition_normalized_ion_stage_populations", "shape": ["n_depth", 2], "unit": "cm^-3 per partition function"},
+    {"name": "magnesium_neutral_partition_normalized_population", "shape": ["n_depth"], "unit": "cm^-3 per partition function"},
+    {"name": "aluminum_neutral_partition_normalized_population", "shape": ["n_depth"], "unit": "cm^-3 per partition function"},
+    {"name": "silicon_neutral_partition_normalized_population", "shape": ["n_depth"], "unit": "cm^-3 per partition function"},
+    {"name": "iron_neutral_partition_normalized_population", "shape": ["n_depth"], "unit": "cm^-3 per partition function"},
+    {"name": "hc_over_kt", "shape": ["n_depth"], "unit": "cm"},
+    {"name": "microturbulence", "shape": ["n_depth"], "unit": "cm s^-1"},
+    {"name": "elemental_abundances", "shape": ["n_element"], "unit": "relative number abundance"},
+    {"name": "signed_continuum_edge_frequency_hz", "shape": ["n_edge"], "unit": "Hz"},
+    {"name": "continuum_edge_wavelength_nm", "shape": ["n_edge"], "unit": "nm"},
+    {"name": "continuum_edge_midpoint_wavelength_nm", "shape": ["n_edge - 1"], "unit": "nm"},
+    {"name": "continuum_edge_interval_width_squared_over_two_nm2", "shape": ["n_edge - 1"], "unit": "nm^2"}
+  ],
+  "notes": [
+    "Dense arrays are stored in NPZ for dtype and shape fidelity.",
+    "New products store only the canonical names above. The loader accepts version-1 through version-3 population and Doppler-width aliases as a read-only compatibility boundary, and reconstructs the actual ion-stage cube only for pre-version-3 files.",
+    "Partition-normalized populations are ion-stage number densities divided by their partition functions; they are not bound-level populations or ion-stage totals.",
+    "ion_stage_populations stores actual ion-stage number densities for charge-weighted free-free opacity and must never be replaced by partition-normalized populations.",
+    "signed_continuum_edge_frequency_hz carries the interpolation-side sign convention; magnitudes are physical frequencies.",
+    "continuum_edge_interval_width_squared_over_two_nm2 is (lambda_right - lambda_left)^2 / 2, the quadratic interpolation denominator.",
+    "JSON is used for schema and manifests, not for hot-path numerical arrays."
+  ]
+}

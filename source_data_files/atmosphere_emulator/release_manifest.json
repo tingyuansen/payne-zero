@@ -1,0 +1,165 @@
+{
+  "format": "payne_zero_initializer_release_manifest_v2",
+  "release": "v1.3",
+  "families": {
+    "five_label": {
+      "dispatch": "selected when no explicit C, N, or O abundance is supplied",
+      "public_labels": [
+        "effective_temperature",
+        "log_surface_gravity",
+        "metallicity",
+        "alpha_enhancement",
+        "microturbulence_km_s"
+      ],
+      "checkpoint_features": [
+        {
+          "name": "temperature_ratio_5040_k_over_temperature",
+          "physical_source": "effective_temperature",
+          "transform": "5040 K / effective_temperature",
+          "unit": "dimensionless"
+        },
+        {
+          "name": "log10_surface_gravity_cgs",
+          "physical_source": "log_surface_gravity",
+          "transform": "identity",
+          "unit": "dex(cgs)"
+        },
+        {
+          "name": "metallicity",
+          "physical_source": "metallicity",
+          "transform": "identity",
+          "unit": "dex [M/H]"
+        },
+        {
+          "name": "alpha_enhancement",
+          "physical_source": "alpha_enhancement",
+          "transform": "identity",
+          "unit": "dex [alpha/M]"
+        },
+        {
+          "name": "microturbulence_km_s",
+          "physical_source": "microturbulence_km_s",
+          "transform": "identity",
+          "unit": "km s^-1"
+        }
+      ],
+      "checkpoint": {
+        "path": "five_label/checkpoint.pt",
+        "sha256": "c32717016d4f9047ab37bc17b6900faf9c514de3407292a07a745c35a50784e5",
+        "format": "payne_zero_complete_atmosphere_latent_v2"
+      },
+      "strict_truth": {
+        "path": "five_label/strict_truth_52199.npz",
+        "sha256": "092cf3c4a0c6075c2dde05803bec62b1d0eb6ec36d5794fe400870c505b44284",
+        "packaged": false,
+        "location": "paper research archive",
+        "records": 52199,
+        "contract": "unique finite profile-valid rows with ok=true, converged=true, and 0 <= iterations_completed < 30",
+        "fit": 50000,
+        "fit_validation": 2000,
+        "internal_check": 199,
+        "label_schema": "canonical public physical labels; acquisition identities and provenance hashes are preserved from generation"
+      }
+    },
+    "cno8": {
+      "dispatch": "selected when any explicit C, N, or O relative coordinate or absolute abundance is supplied",
+      "public_labels": [
+        "effective_temperature",
+        "log_surface_gravity",
+        "metallicity",
+        "alpha_enhancement",
+        "microturbulence_km_s",
+        "carbon_enhancement",
+        "nitrogen_enhancement",
+        "oxygen_enhancement"
+      ],
+      "checkpoint_features": [
+        {
+          "name": "temperature_ratio_5040_k_over_temperature",
+          "physical_source": "effective_temperature",
+          "transform": "5040 K / effective_temperature",
+          "unit": "dimensionless"
+        },
+        {
+          "name": "log10_surface_gravity_cgs",
+          "physical_source": "log_surface_gravity",
+          "transform": "identity",
+          "unit": "dex(cgs)"
+        },
+        {
+          "name": "metallicity",
+          "physical_source": "metallicity",
+          "transform": "identity",
+          "unit": "dex [M/H]"
+        },
+        {
+          "name": "alpha_enhancement",
+          "physical_source": "alpha_enhancement",
+          "transform": "identity",
+          "unit": "dex [alpha/M]"
+        },
+        {
+          "name": "microturbulence_km_s",
+          "physical_source": "microturbulence_km_s",
+          "transform": "identity",
+          "unit": "km s^-1"
+        },
+        {
+          "name": "carbon_enhancement",
+          "physical_source": "carbon_enhancement",
+          "transform": "identity",
+          "unit": "dex [C/M]"
+        },
+        {
+          "name": "nitrogen_enhancement",
+          "physical_source": "nitrogen_enhancement",
+          "transform": "identity",
+          "unit": "dex [N/M]"
+        },
+        {
+          "name": "oxygen_enhancement",
+          "physical_source": "oxygen_enhancement",
+          "transform": "identity",
+          "unit": "dex [O/M]"
+        }
+      ],
+      "checkpoint": {
+        "path": "cno8/checkpoint.pt",
+        "sha256": "be97c0b729490b9e18f092c59f836adb421e2e99359b44436edc3ae5632f8a02",
+        "format": "payne_zero_cno8_complete_atmosphere_latent_v3"
+      },
+      "strict_truth": {
+        "path": "cno8/strict_truth_53824.npz",
+        "sha256": "d7bc1332b77edcbe0226adf87e7ef5e943f193a749493added5527cf6ccf6909",
+        "packaged": false,
+        "location": "paper research archive",
+        "records": 53824,
+        "contract": "unique finite profile-valid chemistry_child rows with ok=true, product_ok=true, converged=true, and 0 <= iterations_completed < 30",
+        "frozen_comparison_cohort": 52199,
+        "frozen_fit": 50000,
+        "frozen_fit_validation": 2000,
+        "frozen_internal_check": 199,
+        "appended_parent_coverage_fit": 1625,
+        "mapped_five_label_rows": 0,
+        "label_schema": "canonical public physical labels; acquisition identities and provenance hashes are preserved from generation"
+      }
+    }
+  },
+  "runtime_contract": {
+    "output_profiles": [
+      "column_mass",
+      "temperature",
+      "gas_pressure",
+      "electron_density",
+      "rosseland_opacity",
+      "radiative_acceleration"
+    ],
+    "depth_layers": 80,
+    "initializer_support_policy": "project only the initializer query to the nearest checkpoint bound and emit a runtime warning",
+    "exact_target_labels_unchanged": true,
+    "product_requires_exact_solver_convergence": true,
+    "cross_family_fallback": false,
+    "legacy_fallback": false,
+    "exact_solver_is_final_authority": true
+  }
+}

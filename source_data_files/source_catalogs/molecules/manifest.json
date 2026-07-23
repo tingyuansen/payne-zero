@@ -1,0 +1,176 @@
+{
+  "description": "Molecular line sources for on-demand window compilation. All text-band data lives in molecular_band_lines.npz under '<band>/<field>' keys; 'text_sources' lists the bands in compile order with their original Kurucz provenance names.",
+  "format": "One NPZ, keys '<band>/<field>', structure-of-arrays of the fixed-width text parse, file line order preserved per band.",
+  "packed_binary_sources": [
+    {
+      "file": "titanium_oxide_lines.npy",
+      "provenance": "tio/schwenke.bin (Schwenke TiO)"
+    },
+    {
+      "file": "water_lines.npy",
+      "provenance": "h2o/h2ofastfix.bin (Partridge-Schwenke H2O)"
+    }
+  ],
+  "text_sources": [
+    {
+      "provenance": "c2ax.dat",
+      "line_count": 406236,
+      "band": "c2_ax_band"
+    },
+    {
+      "provenance": "c2ba.dat",
+      "line_count": 671744,
+      "band": "c2_ba_band"
+    },
+    {
+      "provenance": "c2da.dat",
+      "line_count": 809095,
+      "band": "c2_da_band"
+    },
+    {
+      "provenance": "c2ea.dat",
+      "line_count": 1080329,
+      "band": "c2_ea_band"
+    },
+    {
+      "provenance": "cah.dat",
+      "line_count": 100528,
+      "band": "cah"
+    },
+    {
+      "provenance": "chjorg.dat",
+      "line_count": 155038,
+      "band": "ch_jorgensen"
+    },
+    {
+      "provenance": "cnax.dat",
+      "line_count": 1278217,
+      "band": "cn_ax_band"
+    },
+    {
+      "provenance": "cnbx.dat",
+      "line_count": 366380,
+      "band": "cn_bx_band"
+    },
+    {
+      "provenance": "cnxx12brooke.dat",
+      "line_count": 28994,
+      "band": "cn_xx_12c_brooke"
+    },
+    {
+      "provenance": "coax.dat",
+      "line_count": 396946,
+      "band": "co_ax_band"
+    },
+    {
+      "provenance": "coxx.dat",
+      "line_count": 158544,
+      "band": "co_xx_band"
+    },
+    {
+      "provenance": "crhax.dat",
+      "line_count": 13824,
+      "band": "crh_ax_band"
+    },
+    {
+      "provenance": "fehfx.dat",
+      "line_count": 111404,
+      "band": "feh_fx_band"
+    },
+    {
+      "provenance": "h2bx.dat",
+      "line_count": 19600,
+      "band": "h2_bx_band"
+    },
+    {
+      "provenance": "h2cx.dat",
+      "line_count": 8886,
+      "band": "h2_cx_band"
+    },
+    {
+      "provenance": "h2xx.dat",
+      "line_count": 4449,
+      "band": "h2_xx_band"
+    },
+    {
+      "provenance": "hdxx.dat",
+      "line_count": 12328,
+      "band": "hd_xx_band"
+    },
+    {
+      "provenance": "mgh.dat",
+      "line_count": 59642,
+      "band": "mgh"
+    },
+    {
+      "provenance": "mgodaily.dat",
+      "line_count": 18725,
+      "band": "mgo_daily"
+    },
+    {
+      "provenance": "nah.dat",
+      "line_count": 66918,
+      "band": "nah"
+    },
+    {
+      "provenance": "nhax.dat",
+      "line_count": 34349,
+      "band": "nh_ax_band"
+    },
+    {
+      "provenance": "nhca.dat",
+      "line_count": 1814,
+      "band": "nh_ca_band"
+    },
+    {
+      "provenance": "ohax.dat",
+      "line_count": 81817,
+      "band": "oh_ax_band"
+    },
+    {
+      "provenance": "ohxx.dat",
+      "line_count": 55468,
+      "band": "oh_xx_band"
+    },
+    {
+      "provenance": "sihax.dat",
+      "line_count": 78286,
+      "band": "sih_ax_band"
+    },
+    {
+      "provenance": "sioax.dat",
+      "line_count": 760378,
+      "band": "sio_ax_band"
+    },
+    {
+      "provenance": "sioex.dat",
+      "line_count": 947015,
+      "band": "sio_ex_band"
+    },
+    {
+      "provenance": "sioxx.dat",
+      "line_count": 119654,
+      "band": "sio_xx_band"
+    },
+    {
+      "provenance": "alopatrascu.asc",
+      "line_count": 10021579,
+      "band": "alo_patrascu"
+    },
+    {
+      "provenance": "vo/voax.asc",
+      "line_count": 1611872,
+      "band": "vo_ax_band"
+    },
+    {
+      "provenance": "vo/vobx.asc",
+      "line_count": 1841400,
+      "band": "vo_bx_band"
+    },
+    {
+      "provenance": "vo/vocx.asc",
+      "line_count": 1056247,
+      "band": "vo_cx_band"
+    }
+  ]
+}

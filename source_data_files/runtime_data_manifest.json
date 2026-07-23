@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "identity": "payne-zero-converted-runtime-20260705",
+  "file_count": 32,
+  "total_bytes": 7262202998,
+  "files": [
+    {
+      "path": "atmosphere_tables/continuum_level_tables.npz",
+      "bytes": 9998,
+      "sha256": "35a6839be4ff3dd824206c7a6b851b987132313374ede7ea5441f9d0bd69888f"
+    },
+    {
+      "path": "atmosphere_tables/continuum_opacity_tables.npz",
+      "bytes": 57456,
+      "sha256": "6fd4c556418870c28d3fcc9a050252af58ac4cc433cae979477355c8c7d593e3"
+    },
+    {
+      "path": "atmosphere_tables/hydrogen_line_profile_tables.npz",
+      "bytes": 14312,
+      "sha256": "607b686c4e1ca41bd1eba759b05cb44db2a192ec2a008554e92f4b13d8e10fbf"
+    },
+    {
+      "path": "atmosphere_tables/ionization_potential_tables.npz",
+      "bytes": 8292,
+      "sha256": "82a2e82f2015da02c3d2bce77ca5337aa2b9c4e23d8d6219da07895896ca8a50"
+    },
+    {
+      "path": "atmosphere_tables/iron_group_partition_tables.npz",
+      "bytes": 45573,
+      "sha256": "137629dea64eca46f77ea3656c18305ade912a468d7eb27029544c0106cc3296"
+    },
+    {
+      "path": "atmosphere_tables/isotope_tables.npz",
+      "bytes": 169568,
+      "sha256": "53c8d315fb53f1e051dc2752b028fc270d7c17a2c1042279c04ffcb750aef5c6"
+    },
+    {
+      "path": "atmosphere_tables/karzas_latter_tables.npz",
+      "bytes": 16826,
+      "sha256": "23805dc17c47af45b8ae63b2e278e1fb6c584a01c87d1eb3c31306e4555e6d15"
+    },
+    {
+      "path": "atmosphere_tables/line_opacity_tables.npz",
+      "bytes": 1359,
+      "sha256": "89f486122cb8939b23dc5423145a46d88a77df8daf57a1def35055b7b8205f16"
+    },
+    {
+      "path": "atmosphere_tables/molecular_equilibrium_tables.npz",
+      "bytes": 1935,
+      "sha256": "1e23fbfdca3062998fda0857ffd22fcf3909be505ed3288b422bf6b8d8e7bbbe"
+    },
+    {
+      "path": "atmosphere_tables/packed_level_metadata.npz",
+      "bytes": 17816,
+      "sha256": "de5f17b6a9eaec1d1b07e96fd02ff014279cd8eaa9f976fefde0e2a153961bc3"
+    },
+    {
+      "path": "atmosphere_tables/radiative_transfer_tables.npz",
+      "bytes": 44270,
+      "sha256": "d69fcad9e22dd8dd42634e5720df717f0298849d98ee2cd93236009e22391e56"
+    },
+    {
+      "path": "atmosphere_tables/special_partition_tables.npz",
+      "bytes": 11364,
+      "sha256": "7d737524aacda1cc2281e5b18ff49f240ca34665dbe6c96d4dd0f39db4aedd22"
+    },
+    {
+      "path": "source_catalogs/lines/atomic_source_lines_parsed.npz",
+      "bytes": 258021389,
+      "sha256": "4eafa927c02a4f74401523149a44e35239f2aaecb4a64f2905a4cd5530c2dde7"
+    },
+    {
+      "path": "source_catalogs/lines/detailed_transition_lines.npz",
+      "bytes": 9860680,
+      "sha256": "57b3ff244698965b0c507c3ab23f767d85c37bf4705eb97f0a91c597e2330232"
+    },
+    {
+      "path": "source_catalogs/lines/diatomic_lines.npy",
+      "bytes": 199813280,
+      "sha256": "3980781fa73d9b4e39d9fa5e53dbdf5ad326447753f6146d9040c33036a7ad67"
+    },
+    {
+      "path": "source_catalogs/lines/high_excitation_lines.npy",
+      "bytes": 164299840,
+      "sha256": "d7e189666c46e6400d6167c451e89fe3571a163ee34f2b95610046b05d6cdf08"
+    },
+    {
+      "path": "source_catalogs/lines/molecular_equilibrium_atmosphere.npz",
+      "bytes": 19040,
+      "sha256": "971525641062d8cdb28ddb2955117627290ef223885695b5fd99088aa441a644"
+    },
+    {
+      "path": "source_catalogs/lines/molecular_equilibrium_synthesis.npz",
+      "bytes": 18060,
+      "sha256": "3e8c1ea69fe672b9886bda38922f868c6d2ac2b43c4eb0d7750620241c238d28"
+    },
+    {
+      "path": "source_catalogs/lines/observed_atomic_lines.npy",
+      "bytes": 26812832,
+      "sha256": "649b039474ca6cda6e9fe0dea3052e5d47c24320ba8be1f48cd2ec39b7bcf84f"
+    },
+    {
+      "path": "source_catalogs/lines/predicted_atomic_lines_part1.npy",
+      "bytes": 1398424928,
+      "sha256": "7b43136d9729e777d188abbb2cf2e0f99437497836a8ce70d385c52dbdd51cc5"
+    },
+    {
+      "path": "source_catalogs/lines/predicted_atomic_lines_part2.npy",
+      "bytes": 1398424928,
+      "sha256": "0dd5d6c9ccf6484b0d7c02ba7c4f8298e70f9965ace6691f7d74551c2ad95ad0"
+    },
+    {
+      "path": "source_catalogs/lines/predicted_atomic_lines_part3.npy",
+      "bytes": 1398424928,
+      "sha256": "bea4434d1cd1663c9221767dcc08b05791cdd17ae23131d1917cb7ca145c5274"
+    },
+    {
+      "path": "source_catalogs/molecules/molecular_band_lines.npz",
+      "bytes": 1275603984,
+      "sha256": "39cb02310e109eca28190b41d82148173e8000ad6a968cc65ec14e6d2f6bd7df"
+    },
+    {
+      "path": "source_catalogs/molecules/titanium_oxide_lines.npy",
+      "bytes": 603912368,
+      "sha256": "7def3a02828fba3a917581343f0cdbc11d97fb335a69c69098d348a344d38ca8"
+    },
+    {
+      "path": "source_catalogs/molecules/water_lines.npy",
+      "bytes": 527299104,
+      "sha256": "3fd5f26886c8af68a1910606790358e4971b3d8831b3d0c1be493ca73f615442"
+    },
+    {
+      "path": "synthesis_tables/atomic_masses.npz",
+      "bytes": 1076,
+      "sha256": "d4739fef7e03964aea5a7b2604f9585fd9095c26c58f5b7d5d040aaafeb5d117"
+    },
+    {
+      "path": "synthesis_tables/continuum_edge_grid.npz",
+      "bytes": 24104,
+      "sha256": "11b77ecf752f04b37d34299b13c11aeccbc15bbbafde0d5324ca180e3b1d3f3e"
+    },
+    {
+      "path": "synthesis_tables/continuum_tables.npz",
+      "bytes": 34516,
+      "sha256": "406ea952ab8a849c0fee5d04d27882cb92184c30fcdcbaa901d71b8b310a823d"
+    },
+    {
+      "path": "synthesis_tables/ionization_potential_lookup.npz",
+      "bytes": 8292,
+      "sha256": "54e16c51d572414ea149bc241beca774b9c3a418b339d1fbedf94da90369d135"
+    },
+    {
+      "path": "synthesis_tables/line_profile_tables.npz",
+      "bytes": 57308,
+      "sha256": "87b47fc76bed10455218f43c4b6686525b961002e72d6a5ef01255a08deb27d4"
+    },
+    {
+      "path": "synthesis_tables/partition_saha_inputs.npz",
+      "bytes": 719700,
+      "sha256": "0e235e7f1edecf39630690f4c68f4fc952f55785a08174562bc9575100fc4e27"
+    },
+    {
+      "path": "synthesis_tables/transfer_tables.npz",
+      "bytes": 23872,
+      "sha256": "64f75de9af02697c0b97b7bbf919f6fed9d646622f18859eb5f66ff66e7f7a7b"
+    }
+  ],
+  "public_metadata": [
+    {
+      "path": "source_catalogs/CHECKSUMS.sha256",
+      "bytes": 1436,
+      "sha256": "61d3233b528a2b98e2f360b6ac795a8a948cf004c4588cbbe530ed3475ca029d"
+    },
+    {
+      "path": "source_catalogs/molecules/manifest.json",
+      "bytes": 3884,
+      "sha256": "65131b3c07f093f062afed5547875b969da1e607dc46e3120332758d5e1c32c6"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "absolute_parameter_fields": [],
+  "artifact": "linelist_calibration/data/arcturus_fts_hband_joint_epochs.npz",
+  "artifact_sha256": "a4491a2dd3e08aa001f0ee103a0e25c8d389bd93857c450758de1a69a0aa098d",
+  "calibration_name": "arcturus_fts_hband_joint_epochs",
+  "component_count": 42886,
+  "correction_fields": [
+    "delta_loggf_dex",
+    "delta_log_vdw_dex",
+    "delta_log_radiative_dex",
+    "delta_log_stark_dex"
+  ],
+  "evidence_role": "frozen calibration-run manifest",
+  "evidence_sha256": "072ff5f6bcffa15f0de2c93e37fedaa35b29d54329ead95633acee9c9963d4e3",
+  "group_count": 25281,
+  "grouping": {
+    "component_identity_fields": [
+      "component_row_signature_sha256",
+      "component_occurrence_ordinal"
+    ],
+    "definition": "physical transition groups with opaque canonical source-row hashes and duplicate occurrence ordinals",
+    "sha256": "362a75a22ca6a25b004ddc4163616af92d7917665ad91f7e45002c049175ed66"
+  },
+  "schema": 4,
+  "source_catalog_role": "exact user-local atomic source catalog",
+  "source_catalog_sha256": "4eafa927c02a4f74401523149a44e35239f2aaecb4a64f2905a4cd5530c2dde7",
+  "source_hash_required_for_application": true,
+  "source_parameter_role": "frozen optimized parameter vector",
+  "source_parameter_sha256": "661a3f4306bdd234d8ff07b1642f3149640db809ff62de6c04d668338289403e"
+}

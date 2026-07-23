@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "identity": "payne-zero-generated-atmosphere-assets-v1.3",
+  "license": "BSD-3-Clause",
+  "asset_count": 3,
+  "total_bytes": 137116986,
+  "content_boundary": "Payne Zero atmosphere-initializer network state; training and validation corpora are retained in the paper research archive",
+  "assets": [
+    {
+      "path": "atmosphere_emulator/five_label/checkpoint.pt",
+      "sha256": "c32717016d4f9047ab37bc17b6900faf9c514de3407292a07a745c35a50784e5",
+      "bytes": 24895925,
+      "delivery": "default_runtime",
+      "purpose": "five-label atmosphere initializer"
+    },
+    {
+      "path": "atmosphere_emulator/cno8/checkpoint.pt",
+      "sha256": "be97c0b729490b9e18f092c59f836adb421e2e99359b44436edc3ae5632f8a02",
+      "bytes": 24557493,
+      "delivery": "default_runtime",
+      "purpose": "eight-label CNO atmosphere initializer"
+    },
+    {
+      "path": "atmosphere_emulator/direct_xh_experimental/checkpoint.pt",
+      "sha256": "1b8e1db1514956dfbf890eb5ae96e01bd918acfc86be538b6b77230332104243",
+      "bytes": 87663568,
+      "delivery": "optional_experimental_runtime",
+      "purpose": "direct-abundance atmosphere initializer"
+    }
+  ]
+}
