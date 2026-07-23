@@ -204,3 +204,13 @@ If Payne Zero contributes to a publication, please cite Ting & Kim,
 *The Payne Zero Project I: Stellar Spectra from Physical Models in Seconds*,
 submitted to the *Open Journal of Astrophysics*. The arXiv identifier will be
 added when it is assigned.
+
+```bibtex
+@unpublished{TingKim2026PayneZero,
+  author = {Ting, Yuan-Sen and Kim, Elliot M.},
+  title = {The Payne Zero Project I: Stellar Spectra from Physical Models in Seconds},
+  year = {2026},
+  note = {Submitted to the Open Journal of Astrophysics},
+  url = {https://github.com/tingyuansen/payne-zero}
+}
+```
