@@ -264,11 +264,13 @@ def solve_structured_atmosphere(
 
     ``initializer="auto"`` selects the five- or eight-label initializer.
     ``absolute_abundance_offsets`` then supplies optional exact-solver ``[X/H]``
-    overrides. ``initializer="direct-abundance"`` instead accepts ``fe_over_h``
-    and any individual ``x_over_h`` coordinates. Unspecified elements inherit
-    ``fe_over_h``. The resulting complete 81-coordinate mixture is used for both
-    the starting structure and the converged physical solve. Generated callers
-    may provide the same coordinates through ``abundance_by_atomic_number``.
+    overrides as ``{atomic_number: value}``. ``initializer="direct-abundance"``
+    instead accepts ``fe_over_h`` and any individual ``x_over_h`` coordinates.
+    Unspecified elements inherit ``fe_over_h``. The resulting complete
+    81-coordinate mixture is used for both the starting structure and the
+    converged physical solve. Generated callers may provide the same
+    coordinates through ``abundance_by_atomic_number``, again keyed by integer
+    atomic number and valued in dex relative to hydrogen.
     """
     coordinate_options = (
         ("[C/M]", c_over_m, carbon_over_m, carbon_enhancement),

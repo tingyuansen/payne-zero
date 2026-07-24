@@ -26,7 +26,12 @@ def _synchronize(device: torch.device) -> None:
 
 @dataclass(frozen=True)
 class CalibrationData:
-    """Observed flux and nonnegative objective weights of any matching shape."""
+    """Observed normalized flux and nonnegative weights of matching shape.
+
+    A weight may be inverse variance, a quality weight, or zero for a masked
+    sample. Non-finite flux and zero-weight samples are excluded. The model
+    callback must return flux with this exact shape.
+    """
 
     flux: np.ndarray
     weight: np.ndarray
@@ -53,7 +58,14 @@ class CalibrationData:
 
 @dataclass(frozen=True)
 class CalibrationConfiguration:
-    """Bounded physical parameters and LBFGS controls."""
+    """Matching one-dimensional parameter vectors and optimizer controls.
+
+    ``initial``, ``lower``, and ``upper`` have shape ``(P,)`` and use the
+    physical order expected by the callback. ``names``, when supplied, has
+    length ``P``. The physical atomic model interprets these values as dex.
+    ``device`` is a concrete PyTorch device such as ``cpu``, ``mps``, or
+    ``cuda``; ``dtype`` is ``float32`` or ``float64``.
+    """
 
     initial: np.ndarray
     lower: np.ndarray
@@ -167,10 +179,10 @@ def calibrate_line_parameters(
 ) -> CalibrationResult:
     """Optimize any differentiable physical line-parameter vector.
 
-    ``model`` receives the bounded physical parameter tensor and must return
-    flux with the same shape as ``data.flux``. Instrument response,
-    normalization, and multi-spectrum stacking remain explicit parts of that
-    callback.
+    ``model`` receives the bounded tensor with shape ``(P,)`` on the configured
+    device and dtype. It must return differentiable normalized flux with the
+    exact shape of ``data.flux``. Instrument response, normalization, and
+    multi-spectrum stacking remain explicit parts of that callback.
     """
 
     fit = configuration.validated()

@@ -19,10 +19,14 @@ class ObservedSpectrumOperator:
     The input grid must be uniform in logarithmic wavelength, as produced by
     Payne Zero synthesis. The output grid may be any strictly increasing set
     of wavelengths within the input interval. An instrument can be described
-    by either a constant resolving power or a sampled, odd-length convolution
-    kernel. For wavelength-dependent or detector-specific line-spread
-    functions, callers may instead supply their own object implementing the
-    same ``output_wavelength_nm`` and ``convolve_fluxes`` interface.
+    by either a constant resolving power or ``lsf_kernel``, a one-dimensional,
+    odd-length convolution kernel sampled in native log-wavelength pixels. The
+    middle entry is the zero-offset sample. Entries must be finite and
+    nonnegative; the operator normalizes their sum. This single kernel is
+    shift-invariant and is applied before resampling. For wavelength-dependent
+    or detector-specific line-spread functions, callers may instead supply
+    their own object implementing the same ``output_wavelength_nm`` and
+    ``convolve_fluxes`` interface.
 
     The operator is differentiable with respect to the input flux. Radial
     velocity and Gaussian broadening are scalar configuration values intended
@@ -143,7 +147,8 @@ class ObservedSpectrumOperator:
                 or float(np.sum(kernel)) <= 0.0
             ):
                 raise ValueError(
-                    "lsf_kernel must be a finite, nonnegative, odd-length vector"
+                    "lsf_kernel must be a one-dimensional, finite, nonnegative, "
+                    "odd-length vector with positive sum"
                 )
             self._lsf_kernel = torch.as_tensor(
                 kernel / np.sum(kernel), device=self.device, dtype=self.dtype
@@ -236,7 +241,12 @@ class ObservedSpectrumOperator:
         total_flux: torch.Tensor,
         continuum_flux: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Project total and continuum flux to the configured output pixels."""
+        """Project native-grid total and continuum flux to the output pixels.
+
+        Both inputs are one-dimensional tensors matching
+        ``input_wavelength_nm`` and must use this operator's device and dtype.
+        The three returned tensors follow ``output_wavelength_nm``.
+        """
 
         if (
             not isinstance(total_flux, torch.Tensor)

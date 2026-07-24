@@ -51,9 +51,16 @@ def fit_apogee_spectrum(
 ) -> dict[str, Any]:
     """Fit one normalized APOGEE spectrum and write its complete fit summary.
 
-    ``reference_labels`` must contain ``(Teff, logg, [M/H], [alpha/M], vmicro)``.
-    The wavelength, flux, weight, and mask arrays must describe the retained
-    apStar pixels used by the packaged DR14 combined-LSF asset.  The reference
+    Spectrum arrays have shape ``(7514,)`` on the retained apStar grid.
+    ``wavelength_nm`` is in nm, ``normalized_flux`` is dimensionless, and
+    ``inverse_variance`` is its inverse variance. ``good_pixel_mask=True``
+    requests inclusion; finite flux, finite inverse variance, and positive
+    inverse variance are also required. Inputs are converted to ``float64`` and
+    the mask to Boolean.
+
+    ``reference_labels`` has shape ``(5,)`` and contains ``(Teff, logg, [M/H],
+    [alpha/M], vmicro)`` in K, dex, dex, dex, and km/s.
+    ``reference_vmacro_km_s`` is in km/s. The reference
     values initialize the optimizer by default and remain an external
     comparison point; they are not treated as truth. Set
     ``initial_label_mode="controlled_offset"`` only to reproduce the displaced
@@ -79,12 +86,20 @@ def fit_apogee_spectrum(
     ):
         if preferred is not None and legacy is not None:
             raise ValueError(f"supply {name} through only one Python keyword")
-        resolved_cno.append(preferred if preferred is not None else legacy)
+        selected = preferred if preferred is not None else legacy
+        if selected is not None and not np.isfinite(float(selected)):
+            raise ValueError(f"the starting {name} value must be finite")
+        resolved_cno.append(selected)
     carbon_enhancement, nitrogen_enhancement, oxygen_enhancement = resolved_cno
 
     labels = np.asarray(reference_labels, np.float64)
     if labels.shape != (5,):
         raise ValueError("reference_labels must contain exactly five values")
+    if not np.all(np.isfinite(labels)):
+        raise ValueError("reference_labels must be finite")
+    reference_vmacro = float(reference_vmacro_km_s)
+    if not np.isfinite(reference_vmacro):
+        raise ValueError("reference_vmacro_km_s must be finite")
     flux = np.asarray(normalized_flux, np.float64)
     wavelength = np.asarray(wavelength_nm, np.float64)
     ivar = np.asarray(inverse_variance, np.float64)
@@ -131,7 +146,7 @@ def fit_apogee_spectrum(
         inverse_variance=ivar,
         good_pixel_mask=mask,
         catalog_labels=labels,
-        catalog_vmacro_km_s=float(reference_vmacro_km_s),
+        catalog_vmacro_km_s=reference_vmacro,
         metadata={**(metadata or {}), "object_id": str(object_id)},
         data_mode="apogee_normalized_spectrum",
         reference_is_truth=False,

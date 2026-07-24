@@ -127,6 +127,10 @@ def canonical_atomic_row_identities(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Return opaque row hashes and zero-based duplicate ordinals.
 
+    ``arrays`` must contain every name in
+    ``ATOMIC_CALIBRATION_SIGNATURE_FIELDS`` as same-length one-dimensional
+    arrays. Returned signature and ordinal vectors have that row length.
+
     The ordinal is counted in the supplied catalog order among rows with the
     same canonical hash. Together these two arrays identify duplicate source
     rows without exposing their catalog values.
@@ -181,6 +185,10 @@ def load_atomic_calibration(
     calibration_path: str | Path,
 ) -> tuple[dict[str, np.ndarray], dict[str, object]]:
     """Load and validate a portable standard-star atomic-parameter product.
+
+    Returns the stored arrays plus an inventory dictionary. The four normalized
+    ``_delta_*_dex`` vectors added to the array dictionary are always group
+    length, regardless of the readable on-disk schema version.
 
     Schema 4 is the correction-only public format. It stores opaque source-row
     identities and requires an exact source-catalog digest when applied.
@@ -492,6 +500,11 @@ def apply_atomic_calibration(
 ) -> tuple[dict[str, np.ndarray], dict[str, object]]:
     """Apply one overlay to a private catalog copy.
 
+    Every catalog value is a one-dimensional row array. The mapping must include
+    ``ATOMIC_CALIBRATION_SIGNATURE_FIELDS`` and the oscillator-strength and
+    damping arrays carried by ``payne_zero_synthesis.atomic_lines.LineCatalog``.
+    The returned mapping contains corrected copies with identical shapes.
+
     ``complete`` requires a one-to-one match for every overlay component and is
     the contract used by catalog export. ``selected_window`` permits overlay
     components absent from an active synthesis catalog, but still requires an
@@ -724,7 +737,12 @@ def write_substituted_catalog(
     *,
     source_catalog_path: str | Path | None = None,
 ) -> dict[str, object]:
-    """Write a complete catalog and JSON sidecar without changing the source."""
+    """Write corrected same-shape catalog arrays and a JSON sidecar.
+
+    ``catalog`` follows :func:`apply_atomic_calibration`. ``output_path`` gains
+    a ``.npz`` suffix when needed. Schema-4 products require the exact
+    ``source_catalog_path`` whose SHA-256 is recorded in the overlay.
+    """
 
     destination = Path(output_path).expanduser().resolve()
     if destination.suffix != ".npz":

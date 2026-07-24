@@ -6,6 +6,21 @@ This package is the reusable boundary of the Apache Point Observatory Galactic E
 
 The installed Python array interface and command expose the five standard labels and the eight-label family with independent carbon, nitrogen, and oxygen coordinates, selected with `fit_cno8=True`. Use the generic fitter interface for a direct-[X/H] model or another abundance parameterization.
 
+## Input arrays
+
+The Python interface accepts NumPy-compatible arrays. The command reads the same arrays from an `.npz` archive:
+
+| Key or argument | Shape | Meaning |
+|---|---:|---|
+| `wavelength_nm` | `(7514,)` | Retained DR14 apStar wavelength grid in nm; it must match the packaged LSF grid |
+| `normalized_flux` | `(7514,)` | Dimensionless normalized flux |
+| `inverse_variance` | `(7514,)` | Inverse variance of normalized flux |
+| `good_pixel_mask` | `(7514,)` | Optional Boolean-compatible array; `True` requests inclusion |
+| `reference_labels` | `(5,)` | `Teff` in K, `logg` in dex with gravity in cgs, `[M/H]` in dex, `[alpha/M]` in dex, and microturbulence in km/s |
+| `reference_vmacro_km_s` | scalar | Initial macroscopic broadening in km/s |
+
+Arrays are converted to `float64` and the mask to Boolean. A requested pixel is used only when its flux and inverse variance are finite and its inverse variance is positive. If the mask is omitted, those three conditions define it. The `.npz` command reads only the four named spectrum arrays; object identity and reference values are command options rather than archive metadata.
+
 The Python array example below fits the public DR14 spectrum bundled with the tutorial. It uses a reduced synthesis-grid density so the example remains practical on a central processing unit (CPU) or laptop graphics processor. Run it from the repository root so the relative data and calibration paths resolve.
 
 ```python
@@ -45,7 +60,7 @@ with np.load(data_path, allow_pickle=False) as spectrum:
     )
 ```
 
-The label order is effective temperature (`Teff`), the base-10 logarithm of surface gravity (`logg`), `[M/H]`, `[alpha/M]`, and microturbulence. The wavelength, flux, weights, and mask must represent the 7,514 retained apStar pixels described by the bundled LSF asset. Reference labels initialize the established optimizer and remain an external comparison point, not truth. The default `initial_label_mode="reference"` uses those values directly. `initial_label_mode="controlled_offset"` is available only to reproduce the fixed displaced start used by the controlled recovery experiment. Combined APOGEE spectra are already approximately rest-framed, so the default `initial_rv_mode="rest_frame"` starts the residual velocity at zero and does not calculate an unused cross-correlation function (CCF). For spectra that still need a coarse velocity start, set `initial_rv_mode="coarse_ccf"`. The optional synthesis density is `R_grid=300,000` by default and is applied before the instrumental LSF. The historical Python keyword `synthesis_resolution=` remains an alias for `synthesis_r_grid=`.
+Reference labels initialize the established optimizer and remain an external comparison point, not truth. The default `initial_label_mode="reference"` uses those values directly. `initial_label_mode="controlled_offset"` is available only to reproduce the fixed displaced start used by the controlled recovery experiment. Combined APOGEE spectra are already approximately rest-framed, so the default `initial_rv_mode="rest_frame"` starts the residual velocity at zero and does not calculate an unused cross-correlation function (CCF). For spectra that still need a coarse velocity start, set `initial_rv_mode="coarse_ccf"`. The optional synthesis density is `R_grid=300,000` by default and is applied before the instrumental LSF. The historical Python keyword `synthesis_resolution=` remains an alias for `synthesis_r_grid=`.
 
 Set `fit_cno8=True` together with finite `c_over_m`, `n_over_m`, and `o_over_m` starts to fit the ordered stellar coordinates `Teff`, `logg`, `[M/H]`, `[alpha/M]`, microturbulence, `[C/M]`, `[N/M]`, and `[O/M]`. The residual velocity and macroscopic broadening remain separate nuisance coordinates. The command-line equivalents are `--fit-cno8`, `--c-over-m`, `--n-over-m`, and `--o-over-m`; all three abundance starts are required when the eight-label fit is enabled.
 
@@ -72,4 +87,4 @@ payne-zero-fit-apogee examples/data/apogee_dr14_example.npz tutorial_output/apog
 
 Add `--initial-rv-mode coarse-ccf` when the prepared spectrum is not already rest-framed. `--initial-label-mode controlled-offset` reproduces the controlled recovery start and is not the normal fitting default.
 
-The input NumPy `.npz` archive requires `wavelength_nm`, `normalized_flux`, and `inverse_variance`; `good_pixel_mask` is optional and otherwise derived from finite positive weights. The command writes the same summary and optimization trace as the Python interface. Use `fitter.normalized` instead when the spectrum is not on the APOGEE retained-pixel grid or needs a different instrument model.
+The command writes the same summary and optimization trace as the Python interface. Use `fitter.normalized` instead when the spectrum is not on the APOGEE retained-pixel grid or needs a different instrument model.

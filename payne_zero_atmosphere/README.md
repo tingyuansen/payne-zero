@@ -146,6 +146,8 @@ path = solve_structured_atmosphere(
 
 Any of the 81 element names can be supplied independently. The lower-level `abundance_by_atomic_number` mapping remains available for generated mixtures.
 
+The Python mappings `abundance_by_atomic_number` and `absolute_abundance_offsets` use integer atomic-number keys and finite `[X/H]` values in dex, for example `{6: -0.5, 12: -0.1, 26: -0.3}` for C, Mg, and Fe. The command-line `--abundance` and JSON interfaces additionally accept element-symbol keys. In direct-abundance mode, Fe is required and every unspecified supported element inherits its `[Fe/H]`.
+
 Advanced callers may supply an in-memory `ModelAtmosphere` directly:
 
 ```python

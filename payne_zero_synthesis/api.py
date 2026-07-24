@@ -362,6 +362,16 @@ def build_structured_atmosphere(
     columns and needs to hand them to Payne Zero synthesis without writing an
     intermediate text deck. The returned mapping uses the public field names
     documented in ``atmosphere_schema.json``.
+
+    ``temperature`` [K], ``column_mass`` [g cm^-2], ``gas_pressure``
+    [dyne cm^-2], and ``electron_density`` [cm^-3] must be finite
+    one-dimensional arrays with the same outer-to-inner depth ordering;
+    ``column_mass`` must increase with index. ``elemental_abundances`` has
+    shape ``(99,)`` and stores linear number fractions for atomic numbers
+    1 through 99 at indices 0 through 98. It is not a log-epsilon or ``[X/H]``
+    array. ``microturbulence`` may be a scalar or one value per layer in
+    cm s^-1. ``mass_density``, when supplied, is one value per layer in
+    g cm^-3.
     """
 
     return _synthesis_engine.build_structured_atmosphere_from_columns(
@@ -444,7 +454,12 @@ def synthesize(
 
     ``spectral_operator`` is an optional prepared device-resident operator that
     transforms wavelength-density total and continuum flux before their one
-    final host transfer.  An :class:`InitializedAtmosphere` can be passed
+    final host transfer. It must expose a one-dimensional
+    ``output_wavelength_nm`` array and a
+    ``convolve_fluxes(total_flux, continuum_flux)`` method. The method receives
+    two one-dimensional Torch tensors on the synthesis device and returns
+    projected total, continuum, and normalized-flux tensors of the same length
+    as ``output_wavelength_nm``. An :class:`InitializedAtmosphere` can be passed
     directly, so label-driven synthesis and line-list calibration can share
     exactly the same population-bridged state without a temporary NPZ.
     """

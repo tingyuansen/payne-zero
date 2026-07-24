@@ -32,9 +32,12 @@ _PARAMETER_FAMILIES = ("loggf", "vdw", "radiative", "stark")
 class AtomicTransition:
     """One physical transition group selected from the synthesis catalog.
 
-    The catalog row nearest ``wavelength_nm`` seeds the group. Components of
-    the same element and ion stage are linked when their lower excitation and
-    wavelength agree within the declared tolerances.
+    ``atomic_number`` is the nuclear charge. ``ion_stage=1`` denotes a neutral
+    line and 2 denotes a singly ionized line. Wavelengths are vacuum nm. The
+    nearest catalog row within
+    ``search_tolerance_nm`` seeds the group. Components of the same element and
+    ion stage are linked when their lower excitation in cm^-1 and wavelength
+    agree within the declared component tolerances. ``name`` is only a label.
     """
 
     atomic_number: int
@@ -44,6 +47,32 @@ class AtomicTransition:
     search_tolerance_nm: float = 0.008
     component_wavelength_tolerance_nm: float = 0.035
     component_excitation_tolerance_cm: float = 2.0
+
+    def __post_init__(self) -> None:
+        atomic_number = float(self.atomic_number)
+        ion_stage = float(self.ion_stage)
+        numeric = (
+            float(self.wavelength_nm),
+            float(self.search_tolerance_nm),
+            float(self.component_wavelength_tolerance_nm),
+            float(self.component_excitation_tolerance_cm),
+        )
+        if (
+            not np.isfinite(atomic_number)
+            or not atomic_number.is_integer()
+            or atomic_number < 1
+            or not np.isfinite(ion_stage)
+            or not ion_stage.is_integer()
+            or ion_stage < 1
+            or not all(np.isfinite(value) for value in numeric)
+            or numeric[0] <= 0.0
+            or any(value < 0.0 for value in numeric[1:])
+        ):
+            raise ValueError(
+                "atomic transition requires positive integer atomic and ion "
+                "numbers, a positive finite wavelength, and finite "
+                "nonnegative tolerances"
+            )
 
 
 @dataclass(frozen=True)
@@ -97,6 +126,15 @@ def gaussian_velocity_kernel(
 
 class SynthesisLineCalibrationModel:
     """A differentiable atomic calibration model for one fixed atmosphere.
+
+    ``atmosphere_path`` is a converged structured-atmosphere NPZ.
+    ``wavelength_start_nm`` and ``wavelength_end_nm`` bound the native vacuum
+    wavelength grid; ``resolution`` is its dimensionless lambda/delta-lambda
+    sampling. ``observed_wavelength_nm`` is an optional strictly increasing
+    one-dimensional vacuum-nm array. Positive radial velocity in km/s shifts
+    the observed grid redward. A supplied broadening kernel must be a finite,
+    nonnegative, odd-length vector with positive sum, sampled on the native
+    constant-velocity grid.
 
     The expensive continuum and unchanged line opacity are evaluated once.
     Each call replaces only the selected transition opacity, solves radiative
@@ -344,7 +382,8 @@ class SynthesisLineCalibrationModel:
             or np.sum(kernel) <= 0.0
         ):
             raise ValueError(
-                "broadening_kernel must be a finite, nonnegative, odd vector"
+                "broadening_kernel must be a one-dimensional, finite, "
+                "nonnegative, odd-length vector with positive sum"
             )
         kernel = kernel / np.sum(kernel)
         return torch.as_tensor(kernel, dtype=self.dtype, device=self.device)
@@ -360,6 +399,13 @@ class SynthesisLineCalibrationModel:
         torch.Tensor | None,
         torch.Tensor | None,
     ]:
+        if (
+            not np.isfinite(radial_velocity_km_s)
+            or radial_velocity_km_s <= -LIGHT_SPEED_KM_S
+        ):
+            raise ValueError(
+                "radial_velocity_km_s must be finite and greater than -c"
+            )
         if observed_wavelength_nm is None:
             return self.native_wavelength_nm.copy(), None, None, None
         observed = np.asarray(observed_wavelength_nm, np.float64)
@@ -452,6 +498,11 @@ class SynthesisLineCalibrationModel:
     ) -> torch.Tensor:
         """Return normalized flux while retaining the PyTorch gradient graph.
 
+        ``corrections_dex`` is a one-dimensional tensor on the model device and
+        contains one additive base-10 logarithmic correction per requested
+        family and resolved transition group. Damping corrections multiply the
+        corresponding linear damping value by 10**correction.
+
         The flat parameter vector is ordered by family, then transition group.
         For two groups and ``("loggf", "vdw")``, its order is both log(gf)
         corrections followed by both van der Waals corrections.
@@ -473,6 +524,12 @@ class SynthesisLineCalibrationModel:
                 f"corrections_dex must contain {expected} values for "
                 f"{len(self.transitions)} transition groups and {len(families)} families"
             )
+        if corrections_dex.device != self.device or corrections_dex.dtype != self.dtype:
+            raise ValueError(
+                "corrections_dex must use the calibration model device and dtype"
+            )
+        if not torch.all(torch.isfinite(corrections_dex)):
+            raise ValueError("corrections_dex must be finite")
         values = corrections_dex.reshape(len(families), len(self.transitions))
         by_family = dict(zip(families, values, strict=True))
         zeros = torch.zeros(
@@ -510,7 +567,12 @@ class SynthesisLineCalibrationModel:
         self,
         parameter_families: Sequence[str] = ("loggf",),
     ) -> Callable[[torch.Tensor], torch.Tensor]:
-        """Return the callback expected by ``calibrate_line_parameters``."""
+        """Return a normalized-flux callback for ``calibrate_line_parameters``.
+
+        Its input has shape ``(len(parameter_families) * len(transitions),)``
+        in family-major order. Its output has the native wavelength shape or
+        the shape of ``observed_wavelength_nm`` when that grid was supplied.
+        """
 
         families = tuple(parameter_families)
 
@@ -526,7 +588,7 @@ class SynthesisLineCalibrationModel:
         self,
         parameter_families: Sequence[str] = ("loggf",),
     ) -> np.ndarray:
-        """Return the zero-correction model flux as a host NumPy array."""
+        """Return zero-correction normalized flux as a host NumPy vector."""
 
         count = len(tuple(parameter_families)) * len(self.transitions)
         zeros = torch.zeros(count, dtype=self.dtype, device=self.device)
@@ -546,6 +608,10 @@ class SynthesisLineCalibrationModel:
         substituted_catalog_path: str | Path | None = None,
     ) -> dict[str, object]:
         """Write fitted values as a source-bound schema-4 atomic overlay.
+
+        ``corrections_dex`` uses the same one-dimensional family-major order as
+        :meth:`spectrum`. ``source_catalog_path`` must identify the exact
+        catalog used by the model; the installed catalog is the default.
 
         Selected physical transition groups retain their fitted corrections.
         Other catalog rows inside the minimal rectangular schema scope receive

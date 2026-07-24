@@ -19,7 +19,12 @@ ConvergedModelFunction = Callable[[Array], Array]
 
 @dataclass(frozen=True)
 class NormalizedSpectrum:
-    """Observed normalized flux and weights on one wavelength grid."""
+    """Observed normalized flux and weights on one wavelength grid.
+
+    All four inputs are one-dimensional NumPy-compatible arrays of equal
+    length. ``mask=True`` requests inclusion; validation also requires finite
+    flux and inverse variance and a strictly positive inverse variance.
+    """
 
     wavelength: Array
     flux: Array
@@ -50,7 +55,10 @@ class NormalizedSpectrum:
 
 @dataclass(frozen=True)
 class FitConfiguration:
-    """Parameter bounds, finite-difference scales, and stopping controls."""
+    """Ordered parameter bounds, finite-difference scales, and controls.
+
+    Every numerical vector has shape ``(len(names),)`` in ``names`` order.
+    """
 
     names: tuple[str, ...]
     initial: Array
@@ -605,11 +613,13 @@ def fit_normalized_spectrum(
 ) -> FitResult:
     """Fit any normalized spectrum whose callback returns observed-grid flux.
 
+    For ``N`` pixels and ``P`` parameter names, ``model`` returns finite flux
+    with shape ``(N,)`` and an optional ``jacobian`` returns shape ``(N, P)``.
     The callback owns the physical forward path, including synthesis,
-    instrument response, Doppler projection, and resampling. With a continuum
-    basis, ``jacobian`` must describe the continuum-profiled output. If it is
-    omitted, bounded one-sided finite differences include profiling
-    automatically. Plotting is never timed here.
+    instrument response, Doppler projection, and resampling. A continuum basis
+    has shape ``(N, K)``. With one present, ``jacobian`` must describe the
+    continuum-profiled output. If it is omitted, bounded one-sided finite
+    differences include profiling automatically. Plotting is never timed here.
     """
 
     observed = spectrum.validated()

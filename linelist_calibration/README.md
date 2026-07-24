@@ -53,6 +53,16 @@ calibrated_flux = model(
 
 A Gaia benchmark star, another FTS atlas, or a survey standard uses the same boundary. Supply its converged structured atmosphere, observed wavelength and normalized-flux arrays, weights, velocity registration, broadening, and the transitions to calibrate:
 
+| Input | Public contract |
+|---|---|
+| Atmosphere | Path to one converged structured-atmosphere `.npz` |
+| Synthesis window | Vacuum `wavelength_start_nm` and `wavelength_end_nm`; `resolution` is the native dimensionless $\lambda/\Delta\lambda$ sampling |
+| Transition selection | Ordered `AtomicTransition` sequence; atomic number is $Z$, ion stage 1 is neutral and 2 is singly ionized, wavelength tolerances are nm, and excitation tolerance is cm$^{-1}$ |
+| Observation | Strictly increasing vacuum `observed_wavelength_nm` with shape `(N,)` and normalized flux with shape `(N,)` |
+| Weights and masks | Same shape as flux; use inverse variance or a declared quality weight, and set masked samples to zero |
+| Velocity and broadening | Radial velocity and Gaussian sigma are km s$^{-1}$; positive velocity is a redshift. A custom kernel is a finite, nonnegative, odd-length vector with positive sum on the native constant-velocity grid and is normalized internally |
+| Fitted vector | One-dimensional finite tensor on the model device and dtype; additive dex corrections use family-major order, with transitions retaining their declared order |
+
 ```python
 import numpy as np
 
@@ -109,7 +119,7 @@ export = physical_model.write_atomic_calibration_overlay(
 
 The native synthesis window must extend beyond the observed pixels so velocity registration and broadening have context. Use `broadening_kernel=` instead of the Gaussian width for a measured shift-invariant profile. `SynthesisLineCalibrationModel` does not apply a wavelength-dependent line-spread function to total and continuum flux separately; use the survey fitter instrument operator for that case.
 
-For a joint calibration, construct one `SynthesisLineCalibrationModel` per star with the same ordered transitions, concatenate their observed flux and weights, and return `torch.cat([model_a(theta), model_b(theta)])` from the shared callback. The same correction vector then has to explain both atmospheres. Parameter families are ordered by family and then transition, so `callback(("loggf", "vdw", "radiative", "stark"))` fits all four atomic quantities for every group.
+For a joint calibration, construct one `SynthesisLineCalibrationModel` per star with the same ordered transitions, concatenate their one-dimensional observed flux and weight arrays in the same star order, and return `torch.cat([model_a(theta), model_b(theta)])` from the shared callback. The same correction vector then has to explain both atmospheres. Parameter families are ordered by family and then transition. For transitions `(Fe, Si)` and families `("loggf", "vdw")`, the vector is `(Fe loggf, Si loggf, Fe vdw, Si vdw)`. The initial values, bounds, and optional names in `CalibrationConfiguration` must use this same order.
 
 The optimizer minimizes `sum(weight * (model - observed)**2) / sum(weight)`. Weights must be finite and nonnegative, and their meaning should be declared by the application. Samples with zero weight or non-finite observed flux are excluded. The result stores the bounded physical parameters, objective history, and per-evaluation wall times. `result.save(...)` writes `calibrated_parameters.npz` and `calibration_summary.json`.
 
@@ -131,7 +141,9 @@ Schema 4 is the public line-list calibration format. It releases four fitted dex
 | `delta_log_radiative_dex` | multiply radiative damping by $10^{\Delta}$ |
 | `delta_log_stark_dex` | multiply Stark damping by $10^{\Delta}$ |
 
-`component_group_index` maps blended catalog components to their shared correction. Each overlay is bound to the exact source catalog and identifies duplicate rows unambiguously. Application validates the source and every in-scope transition before applying the fitted deltas to a private copy.
+The schema contains scalar `schema`, `calibration_name`, and `source_catalog_sha256` fields. `key` and the four correction arrays have shape `(G,)` for $G$ physical groups. `component_group_index`, `component_row_signature_sha256`, and `component_occurrence_ordinal` have shape `(C,)` for $C$ catalog components, with group indices in `[0, G)`. The wavelength, atomic-number, line-type, and ion-stage scope arrays declare which source rows the overlay must cover.
+
+Each overlay is bound to the exact source catalog and identifies duplicate rows unambiguously. The input catalog mapping must contain one same-length array for every `ATOMIC_CALIBRATION_SIGNATURE_FIELDS` entry plus the linear oscillator-strength and damping arrays updated by `apply_atomic_calibration`. A `LineCatalog` converted as below supplies this schema. Application validates the source and every in-scope transition before applying the fitted deltas to a private copy.
 
 ```python
 import numpy as np

@@ -18,11 +18,14 @@ import numpy as np
 class ModelAtmosphere:
     """Structured atmosphere columns plus external-format metadata.
 
+    Every physical column is a one-dimensional NumPy array with the same
+    outer-to-inner depth ordering, and column mass increases with index.
     Column mass is in g cm^-2, gas pressure in dyn cm^-2, electron density in
     cm^-3, Rosseland opacity in cm^2 g^-1, radiative acceleration in cm s^-2,
     and microturbulence in cm s^-1. ``fixed_column_abundance_values`` preserves
-    the external format's mixed convention: linear number fractions for H/He
-    and logarithmic number fractions for metals.
+    the external format's mixed convention and is keyed by atomic number 1
+    through 99: values for H and He are linear number fractions, while metal
+    values are base-10 logarithms of their number fractions.
     """
 
     column_mass: np.ndarray

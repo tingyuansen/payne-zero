@@ -173,6 +173,14 @@ In `synthesize_from_labels`, the older Python keyword `resolution` is an alias f
 
 `build_structured_atmosphere` and `save_structured_atmosphere` are also public for callers that already hold physical atmosphere columns in memory.
 
+### Build from existing atmosphere columns
+
+`build_structured_atmosphere(...)` accepts four required depth arrays with shape `(n_depth,)`: temperature in K, column mass in g cm⁻², gas pressure in dyne cm⁻², and electron density in cm⁻³. The arrays use the same outer-to-inner ordering, and column mass must increase with array index. Optional mass density has the same shape and uses g cm⁻³. Microturbulence is either one scalar or an `(n_depth,)` array in cm s⁻¹; omitting it uses 2 km s⁻¹ at every layer.
+
+`elemental_abundances` has shape `(99,)`. Entry `Z - 1` is the linear number fraction of atomic number `Z`, so index 0 is hydrogen and index 25 is iron. These are number fractions that normally sum to one, not logarithmic abundances, log epsilon values, or `[X/H]`. The builder calculates the ion and molecular populations and returns the complete mapping required by [`atmosphere_schema.json`](atmosphere_schema.json). `save_structured_atmosphere(mapping, path)` validates and writes that mapping.
+
+The optional `spectral_operator=` argument to `synthesize(...)` and `synthesize_from_labels(...)` receives the native total and continuum flux as one-dimensional Torch tensors on the synthesis device. It must provide a one-dimensional `output_wavelength_nm` array and return `(total_flux, continuum_flux, normalized_flux)` tensors of that same length from `convolve_fluxes(total_flux, continuum_flux)`. [`ObservedSpectrumOperator`](../fitter/README.md) is the standard implementation.
+
 ## Atmosphere Contract
 
 [`atmosphere_schema.json`](atmosphere_schema.json) is the machine-readable schema. Version 4 distinguishes two quantities that must not be interchanged:

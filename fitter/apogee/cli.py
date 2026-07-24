@@ -17,20 +17,26 @@ def _build_parser() -> argparse.ArgumentParser:
         "spectrum",
         type=Path,
         help=(
-            "NPZ with wavelength_nm, normalized_flux, inverse_variance, and "
-            "optional good_pixel_mask arrays"
+            "NPZ with (7514,) wavelength_nm, normalized_flux, inverse_variance, "
+            "and optional good_pixel_mask arrays on the packaged DR14 grid"
         ),
     )
-    parser.add_argument("result_dir", type=Path)
-    parser.add_argument("--object-id", required=True)
+    parser.add_argument("result_dir", type=Path, help="output directory")
+    parser.add_argument("--object-id", required=True, help="source identifier")
     parser.add_argument(
         "--reference-labels",
         type=float,
         nargs=5,
         required=True,
         metavar=("TEFF", "LOGG", "M_H", "ALPHA_M", "VMICRO"),
+        help="initial labels in K, dex, dex, dex, and km/s",
     )
-    parser.add_argument("--reference-vmacro", type=float, required=True)
+    parser.add_argument(
+        "--reference-vmacro",
+        type=float,
+        required=True,
+        help="initial macroscopic broadening in km/s",
+    )
     parser.add_argument("--c-over-m", "--carbon-enhancement", dest="c_over_m", type=float)
     parser.add_argument("--n-over-m", "--nitrogen-enhancement", dest="n_over_m", type=float)
     parser.add_argument("--o-over-m", "--oxygen-enhancement", dest="o_over_m", type=float)

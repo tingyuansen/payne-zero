@@ -30,7 +30,7 @@ def _example_data_path(filename: str) -> Path:
 
 
 def load_solar_fts_excerpt() -> tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
-    """Return wavelength, normalized flux, quality weight, and provenance."""
+    """Return matching 1D vacuum-nm, normalized-flux, and weight arrays."""
 
     path = _example_data_path("solar_fts_fe_i_1568_excerpt.npz")
     with np.load(path, allow_pickle=False) as data:
@@ -52,7 +52,7 @@ def build_example(
     SynthesisLineCalibrationModel,
     dict,
 ]:
-    """Build the real one-line FTS calibration used by the public tutorial."""
+    """Return data, bounds, physical model, and atlas provenance."""
 
     wavelength_nm, observed_flux, weight, metadata = load_solar_fts_excerpt()
     model = SynthesisLineCalibrationModel(
@@ -94,17 +94,29 @@ def build_example(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--device", choices=("cpu", "cuda", "mps"), default=None)
+    parser.add_argument(
+        "--device",
+        choices=("auto", "cpu", "cuda", "mps"),
+        default="auto",
+        help="compute backend; default chooses CUDA, then Metal, then CPU",
+    )
     parser.add_argument(
         "--dtype",
         choices=("auto", "float32", "float64"),
         default="auto",
+        help="working precision; auto uses float32 on Metal and float64 otherwise",
     )
-    parser.add_argument("--maximum-iterations", type=int, default=30)
+    parser.add_argument(
+        "--maximum-iterations",
+        type=int,
+        default=30,
+        help="maximum L-BFGS iterations",
+    )
     parser.add_argument(
         "--output-dir",
         type=Path,
         default=Path("results/solar-fts-line-calibration"),
+        help="directory for fitted parameters, spectra, and schema-4 overlay",
     )
     args = parser.parse_args()
 

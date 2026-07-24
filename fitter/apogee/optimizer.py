@@ -256,7 +256,11 @@ class ModelEvaluation:
 
 @dataclass(frozen=True)
 class NormalizedSpectrumInput:
-    """One real normalized spectrum and its catalog comparison point."""
+    """One normalized APOGEE spectrum and its starting catalog coordinates.
+
+    Spectrum arrays follow the packaged 7,514-pixel DR14 grid. Catalog labels
+    are ordered as ``Teff, logg, [M/H], [alpha/M], vmicro``.
+    """
 
     object_id: str
     wavelength_nm: np.ndarray

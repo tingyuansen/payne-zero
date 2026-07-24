@@ -10,6 +10,8 @@ The examples use fast synthesis from labels for repeated trial spectra. Use the 
 
 The generic path has four explicit pieces: the observed arrays, a Payne Zero label-to-spectrum callback, an instrument operator, and the fit configuration. The example below assumes that `wavelength_nm`, `flux`, `inverse_variance`, and `good_pixel_mask` came from a survey reduction or a standard-star atlas.
 
+`NormalizedSpectrum` accepts NumPy-compatible one-dimensional arrays of the same length. `wavelength` must be finite and strictly increasing. It is in nanometers when used with Payne Zero synthesis and the operators below. `flux` is dimensionless normalized flux, and `inverse_variance` is its inverse variance. A `True` mask entry requests that pixel; validation also requires finite flux, finite inverse variance, and positive inverse variance. At least two valid pixels are required. Inputs are converted to `float64` and the mask to Boolean.
+
 First synthesize a native reference grid slightly wider than the observed interval. Then construct a constant-resolution projection. The output wavelength need not be uniform:
 
 ```python
@@ -48,7 +50,22 @@ instrument.set_parameters(
 )
 ```
 
-`ObservedSpectrumOperator` applies residual velocity, Gaussian broadening, a constant-resolution LSF, and linear resampling on the selected device. Pass `lsf_kernel=` instead of `resolving_power=` for a sampled shift-invariant LSF. A wavelength-dependent, fiber-specific, or detector-specific response can be substituted through the same protocol: provide an `output_wavelength_nm` array and a `convolve_fluxes(total_flux, continuum_flux)` method returning projected total flux, continuum flux, and their normalized ratio. Optional `name` and `last_seconds` attributes are retained in synthesis metadata. The APOGEE adapter is one such implementation.
+`ObservedSpectrumOperator` applies residual velocity, Gaussian broadening, an LSF, and linear resampling on the selected device. Use either `resolving_power=` for a constant-resolution Gaussian LSF or `lsf_kernel=` for one sampled shift-invariant LSF. `lsf_kernel` must be a one-dimensional NumPy-compatible array with an odd number of finite, nonnegative, dimensionless response weights. Its samples are spaced by one native log-wavelength pixel, and its middle entry is the zero-offset sample. The values may have any positive sum because the operator normalizes them internally. For example:
+
+```python
+lsf_kernel = np.array([0.02, 0.12, 0.32, 0.44, 0.32, 0.12, 0.02])
+instrument = ObservedSpectrumOperator(
+    native.wavelength_nm,
+    wavelength_nm,
+    lsf_kernel=lsf_kernel,
+    device=device,
+    dtype=torch_dtype,
+)
+```
+
+The sampled kernel is applied on the native grid before interpolation to `output_wavelength_nm`. It therefore describes offsets in native pixels, not wavelength units, velocity units, or observed-pixel indices. A two-dimensional array of per-pixel kernels is not accepted by this argument. The input wavelength must contain at least three positive points uniformly spaced in log wavelength. The output wavelength must be positive, strictly increasing, and contained in the input interval. Both are in nanometers.
+
+A wavelength-dependent, fiber-specific, or detector-specific response can instead implement the same protocol by providing an `output_wavelength_nm` array and a `convolve_fluxes(total_flux, continuum_flux)` method. The method receives one-dimensional total- and continuum-flux tensors on the native grid, on the operator device and with its Torch dtype. It returns total flux, continuum flux, and their normalized ratio on `output_wavelength_nm`. Optional `name` and `last_seconds` attributes are retained in synthesis metadata. The APOGEE adapter is one such implementation.
 
 Next wrap the reduced spectrum and define the model parameters. The fitter uses finite differences unless a Jacobian callback is supplied:
 
@@ -98,7 +115,9 @@ result = fit_normalized_spectrum(
 result.save("results/my_spectrum")
 ```
 
-The continuum basis is optional for a reliably normalized spectrum. It is profiled by weighted linear least squares at every model evaluation and is not part of the nonlinear parameter vector. To fit CNO-sensitive stars, add `c_over_m`, `n_over_m`, and `o_over_m` to the callback and configuration. To fit individual abundances, pass `fe_over_h`, a sparse `x_over_h` mapping, and `initializer_family="direct_abundance"`; omitted elements inherit `[Fe/H]`.
+If the configuration contains `P` names and the spectrum contains `N` pixels, every configuration vector has shape `(P,)` in `names` order. The model callback receives a copy of that vector and returns finite normalized flux with shape `(N,)`. An optional Jacobian callback returns shape `(N, P)`, with rows in observed-pixel order and columns in parameter-name order.
+
+The optional continuum basis has shape `(N, K)`. The fitter multiplies each column by the physical model and profiles its `K` coefficients by weighted linear least squares at every trial. It is not part of the nonlinear parameter vector. When an explicit Jacobian is supplied with a continuum basis, it must describe the continuum-profiled model. To fit CNO-sensitive stars, add `c_over_m`, `n_over_m`, and `o_over_m` to the callback and configuration. To fit individual abundances, pass `fe_over_h`, a sparse `x_over_h` mapping, and `initializer_family="direct_abundance"`; omitted elements inherit `[Fe/H]`.
 
 For a quick fitter-only installation check, run:
 
