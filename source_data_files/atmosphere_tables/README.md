@@ -1,8 +1,6 @@
 # Atmosphere physics tables
 
-These packed NumPy tables are invariant inputs to
-`payne_zero_atmosphere`. They are runtime physics data, not stored model
-answers.
+These packed NumPy tables are invariant inputs to `payne_zero_atmosphere`. They are runtime physics data, not stored model answers.
 
 | file | contents |
 | --- | --- |
@@ -19,6 +17,4 @@ answers.
 | `radiative_transfer_tables.npz` | transfer quadrature operators |
 | `special_partition_tables.npz` | explicit light-element partition functions |
 
-The loader modules validate required keys, shapes, and dtypes. Physical array
-names are the public schema; inspect an NPZ with `numpy.load(path).files` when
-working on a table-specific extension.
+The loader modules validate required keys, shapes, and dtypes. Physical array names are the public schema; inspect an NPZ with `numpy.load(path).files` when working on a table-specific extension.

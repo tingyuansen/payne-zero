@@ -1,14 +1,8 @@
 # Payne Zero Synthesis
 
-`payne_zero_synthesis` turns a solved model atmosphere into an emergent
-spectrum. The public input is the structured-atmosphere NPZ produced by
-`payne_zero_atmosphere`; text atmosphere decks are not a synthesis input.
+`payne_zero_synthesis` turns a solved model atmosphere into an emergent spectrum. The public input is the structured-atmosphere NPZ produced by `payne_zero_atmosphere`; text atmosphere decks are not a synthesis input.
 
-The implementation uses Torch and selects CUDA, then Metal, then CPU when no
-device is specified. CUDA and Metal accelerate broad wavelength windows, while
-CPU is a fully supported execution path and remains useful for deterministic
-verification or systems without an accelerator. If dtype is also omitted, the
-API uses fp32 on Metal and fp64 on CUDA or CPU.
+The implementation uses Torch and selects CUDA, then Metal, then CPU when no device is specified. CUDA and Metal accelerate broad wavelength windows, while CPU is a fully supported execution path and remains useful for deterministic verification or systems without an accelerator. If dtype is also omitted, the API uses fp32 on Metal and fp64 on CUDA or CPU.
 
 ## Command Line
 
@@ -16,7 +10,7 @@ API uses fp32 on Metal and fp64 on CUDA or CPU.
 python -m payne_zero_synthesis.cli atmosphere.npz \
   --out spectrum.npz \
   --wl-start-nm 400 --wl-end-nm 900 \
-  --r-grid 20000 --device cuda --dtype float64
+  --r-grid 20000
 ```
 
 | argument | default | meaning |
@@ -33,16 +27,12 @@ python -m payne_zero_synthesis.cli atmosphere.npz \
 The spectrum NPZ contains:
 
 - `wavelength_nm`;
-- `flux_total`, the total surface `F_lambda` spectral flux density per
-  nanometer;
-- `flux_continuum`, the continuum surface `F_lambda` spectral flux density per
-  nanometer;
+- `flux_total`, the total surface `F_lambda` spectral flux density per nanometer;
+- `flux_continuum`, the continuum surface `F_lambda` spectral flux density per nanometer;
 - `normalized_flux = flux_total / flux_continuum`;
 - `seconds`, the synthesis wall time.
 
-Transfer is evaluated internally as Eddington `H_nu`. The public API applies
-`F = 4 pi H` and the exact frequency-to-wavelength Jacobian needed to return
-both surface-flux arrays per nanometer.
+Transfer is evaluated internally as Eddington `H_nu`. The public API applies `F = 4 pi H` and the exact frequency-to-wavelength Jacobian needed to return both surface-flux arrays per nanometer.
 
 ## Python API
 
@@ -55,44 +45,30 @@ spectrum = synthesize(
     wavelength_end_nm=900.0,
     resolution=20_000.0,
     molecular_lines=True,
-    device="cuda",
-    dtype="float64",
+    device="auto",
+    dtype="auto",
 )
 spectrum.save_npz("sun_spectrum.npz")
 ```
 
-The historical API name `resolution` denotes `R_grid = lambda / Delta lambda`
-for adjacent model samples. Instrumental resolving power is applied separately
-by an instrument model such as the public APOGEE LSF operator.
+The historical API name `resolution` denotes `R_grid = lambda / Delta lambda` for adjacent model samples. Instrumental resolving power is applied separately by an instrument model such as the public APOGEE LSF operator.
 
-`build_structured_atmosphere` and `save_structured_atmosphere` are also public
-for callers that already hold physical atmosphere columns in memory.
+`build_structured_atmosphere` and `save_structured_atmosphere` are also public for callers that already hold physical atmosphere columns in memory.
 
 ## Atmosphere Contract
 
-[`atmosphere_schema.json`](atmosphere_schema.json) is the machine-readable
-schema. Version 4 distinguishes two quantities that must not be interchanged:
+[`atmosphere_schema.json`](atmosphere_schema.json) is the machine-readable schema. Version 4 distinguishes two quantities that must not be interchanged:
 
 - `ion_stage_populations`: actual ion-stage number densities [cm^-3];
-- `partition_normalized_populations`: the same populations divided by their
-  partition functions [cm^-3 per partition function].
+- `partition_normalized_populations`: the same populations divided by their partition functions [cm^-3 per partition function].
 
-The former controls charge-weighted free-free opacity. The latter controls
-bound-state opacity. Dedicated hydrogen, helium, metal, and molecular columns
-use equally explicit names. New products contain canonical names only. The
-loader accepts schema versions 1 through 3 as a read-only compatibility
-boundary and reconstructs the actual ion-stage population cube only for
-pre-version-3 files.
+The former controls charge-weighted free-free opacity. The latter controls bound-state opacity. Dedicated hydrogen, helium, metal, and molecular columns use equally explicit names. New products contain canonical names only. The loader accepts schema versions 1 through 3 as a read-only compatibility boundary and reconstructs the actual ion-stage population cube only for pre-version-3 files.
 
 ## Performance
 
-Synthesis is parallel over wavelength. At `R_grid = 300,000`, a warm
-300--1000 nm spectrum takes about 14--21 s on an H100 across the retained
-stellar controls. A solar 1500--1700 nm spectrum takes 1.4 s on H100 and 3.1 s
-on A100 or V100. The public interface evaluates one atmosphere per call.
+Synthesis is parallel over wavelength. At `R_grid = 300,000`, a warm 300--1000 nm spectrum takes about 14--21 s on an H100 across the retained stellar controls. A solar 1500--1700 nm spectrum takes 1.4 s on H100 and 3.1 s on A100 or V100. The public interface evaluates one atmosphere per call.
 
-Window-invariant line and transfer data are cached in process. Derived caches
-may be deleted without changing the physics.
+Window-invariant line and transfer data are cached in process. Derived caches may be deleted without changing the physics.
 
 Prepare all persistent caches for a wavelength window before timing:
 
@@ -101,13 +77,7 @@ python -m payne_zero_synthesis.prewarm \
   --wavelength-start-nm 400 --wavelength-end-nm 900 --r-grid 20000
 ```
 
-Source checkouts store prepared windows under `.cache/payne-zero/synthesis/`.
-The molecular source parser uses `~/.cache/payne-zero-synthesis/` unless
-`PAYNE_ZERO_SYNTHESIS_CACHE_DIR` is set. Prewarm builds the window-specific
-atomic and molecular products, which are independent of stellar labels.
-Long-lived workers also retain the wavelength grid, catalog mappings, profile
-tables, and device tensors in memory so nearby optimizer evaluations do not
-repeat setup.
+Source checkouts store prepared windows under `.cache/payne-zero/synthesis/`. The molecular source parser uses `~/.cache/payne-zero-synthesis/` unless `PAYNE_ZERO_SYNTHESIS_CACHE_DIR` is set. Prewarm builds the window-specific atomic and molecular products, which are independent of stellar labels. Long-lived workers also retain the wavelength grid, catalog mappings, profile tables, and device tensors in memory so nearby optimizer evaluations do not repeat setup.
 
 | environment variable | effect |
 | --- | --- |

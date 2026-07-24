@@ -21,7 +21,7 @@
       "purpose": "eight-label CNO atmosphere initializer"
     },
     {
-      "path": "atmosphere_emulator/direct_xh_experimental/checkpoint.pt",
+      "path": "atmosphere_emulator/direct_abundance/checkpoint.pt",
       "sha256": "1b8e1db1514956dfbf890eb5ae96e01bd918acfc86be538b6b77230332104243",
       "bytes": 87663568,
       "delivery": "optional_experimental_runtime",

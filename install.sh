@@ -9,7 +9,7 @@ export NUMBA_NUM_THREADS="${NUMBA_NUM_THREADS:-$(getconf _NPROCESSORS_ONLN 2>/de
 export PAYNE_ZERO_ATMOSPHERE_PROGRESS="${PAYNE_ZERO_ATMOSPHERE_PROGRESS:-1}"
 PREWARM_R_GRID="${PAYNE_ZERO_PREWARM_R_GRID:-${PAYNE_ZERO_PREWARM_RESOLUTION:-}}"
 DATA_ROOT_INPUT="${PAYNE_ZERO_DATA_ROOT:-$REPO_DIR/source_data_files}"
-INCLUDE_DIRECT_XH="${PAYNE_ZERO_INCLUDE_DIRECT_XH:-${PAYNE_ZERO_INCLUDE_EXPERIMENTAL_DIRECT_XH:-0}}"
+INCLUDE_DIRECT_ABUNDANCE="${PAYNE_ZERO_INCLUDE_DIRECT_ABUNDANCE:-${PAYNE_ZERO_INCLUDE_DIRECT_XH:-${PAYNE_ZERO_INCLUDE_EXPERIMENTAL_DIRECT_XH:-0}}}"
 
 NUMBA_CACHE_INPUT="${NUMBA_CACHE_DIR:-$PAYNE_ZERO_NUMBA_CACHE_DIR}"
 RESOLVED_NUMBA_CACHE_DIR="$("$PYTHON" -c 'import pathlib, sys; print(pathlib.Path(sys.argv[1]).expanduser().resolve())' "$NUMBA_CACHE_INPUT")"
@@ -47,11 +47,11 @@ if [[ "${PAYNE_ZERO_SKIP_LFS_PULL:-0}" != "1" ]]; then
             echo "Install Git LFS, then rerun ./install.sh." >&2
             exit 2
         fi
-        direct_xh_checkpoint="source_data_files/atmosphere_emulator/direct_xh_experimental/checkpoint.pt"
+        direct_xh_checkpoint="source_data_files/atmosphere_emulator/direct_abundance/checkpoint.pt"
         runtime_lfs_include="source_data_files/atmosphere_emulator/five_label/checkpoint.pt"
         runtime_lfs_include+=",source_data_files/atmosphere_emulator/cno8/checkpoint.pt"
         lfs_exclude="$direct_xh_checkpoint"
-        if [[ "$INCLUDE_DIRECT_XH" == "1" ]]; then
+        if [[ "$INCLUDE_DIRECT_ABUNDANCE" == "1" ]]; then
             runtime_lfs_include+=",$direct_xh_checkpoint"
             lfs_exclude=""
         fi
@@ -71,7 +71,7 @@ initializer_args=(
     --source-root "$REPO_DIR/source_data_files"
     --destination-root "$RESOLVED_DATA_ROOT"
 )
-if [[ "$INCLUDE_DIRECT_XH" == "1" ]]; then
+if [[ "$INCLUDE_DIRECT_ABUNDANCE" == "1" ]]; then
     initializer_args+=(--include-direct-xh)
 fi
 echo "[payne-zero installer] staging hash-verified initializer assets"
@@ -80,7 +80,7 @@ if [[ "${PAYNE_ZERO_SKIP_PIP_INSTALL:-0}" != "1" ]]; then
     echo "[payne-zero installer] installing the editable package"
     "$PYTHON" -m pip install -e . --no-build-isolation
 fi
-if [[ "$INCLUDE_DIRECT_XH" == "1" ]]; then
+if [[ "$INCLUDE_DIRECT_ABUNDANCE" == "1" ]]; then
     echo "[payne-zero installer] validating direct-[X/H] initializer"
     "$PYTHON" -c 'from payne_zero_atmosphere.direct_abundance import load_direct_abundance_initializer; load_direct_abundance_initializer(enable_experimental=True, device="cpu")'
 fi

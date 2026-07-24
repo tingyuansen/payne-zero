@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from .runner import AtmosphereRunResult
 
 
-DIRECT_XH_FAMILY = "direct_xh_experimental"
+DIRECT_XH_FAMILY = "direct_abundance"
 DIRECT_XH_EXPERIMENTAL_CHECKPOINT_FORMAT = (
     "payne_zero_direct_xh_complete_atmosphere_standalone_experimental_v1"
 )

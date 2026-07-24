@@ -1,13 +1,8 @@
 # Payne Zero
 
-Payne Zero calculates one-dimensional LTE stellar atmospheres and synthetic
-spectra with the Kurucz ATLAS12 and SYNTHE physics. The implementation uses
-compiled multicore CPU kernels for atmosphere iteration and PyTorch kernels on
-NVIDIA or Apple GPUs for spectral synthesis. The converged atmosphere is
-passed directly to synthesis as a structured NPZ file.
+Payne Zero calculates one-dimensional LTE stellar atmospheres and synthetic spectra with the Kurucz ATLAS12 and SYNTHE physics. The implementation uses compiled multicore CPU kernels for atmosphere iteration and PyTorch kernels on NVIDIA or Apple GPUs for spectral synthesis. The converged atmosphere is passed directly to synthesis as a structured NPZ file.
 
-The repository also provides general interfaces for normalized-spectrum
-fitting and differentiable line-list calibration.
+The repository also provides general interfaces for normalized-spectrum fitting and differentiable line-list calibration.
 
 ## Components
 
@@ -18,11 +13,11 @@ fitting and differentiable line-list calibration.
 | [`fitter/`](fitter/README.md) | weighted normalized-spectrum fitting |
 | [`linelist_calibration/`](linelist_calibration/README.md) | differentiable calibration of atomic line parameters |
 | [`source_data_files/`](source_data_files/README.md) | hash-verified runtime catalogs, tables, and atmosphere initializers |
+| [`examples/payne_zero_tutorial.ipynb`](examples/payne_zero_tutorial.ipynb) | step-by-step synthesis, atmosphere, calibration, mock-fitting, and APOGEE tutorial |
 
 ## Installation
 
-Python 3.11 or newer and Git LFS are required. Clone normally so Git LFS
-downloads the runtime arrays, then run the installer:
+Python 3.11 or newer and Git LFS are required. Clone normally so Git LFS downloads the runtime arrays, then run the installer:
 
 ```bash
 git clone https://github.com/tingyuansen/payne-zero.git
@@ -30,22 +25,24 @@ cd payne-zero
 ./install.sh
 ```
 
-The installer verifies the runtime files, installs the Python packages, and
-builds persistent caches in
-`.cache/payne-zero/`. A clean installation can spend 10--20 minutes compiling.
-Later runs reuse these caches.
+The installer verifies the runtime files, installs the Python packages, and builds persistent caches in `.cache/payne-zero/`. A clean installation can spend 10--20 minutes compiling. Later runs reuse these caches.
 
 The optional direct-abundance initializer is installed only when requested:
 
 ```bash
-PAYNE_ZERO_INCLUDE_DIRECT_XH=1 ./install.sh
+PAYNE_ZERO_INCLUDE_DIRECT_ABUNDANCE=1 ./install.sh
+```
+
+Install the plotting and Jupyter dependencies before running the tutorial:
+
+```bash
+python -m pip install -e ".[tutorial]"
+jupyter lab examples/payne_zero_tutorial.ipynb
 ```
 
 ## Atmosphere modes
 
-All three modes predict only an initial depth structure. The physical solver
-then iterates at the requested labels and abundances, and writes a result only
-after convergence.
+All three modes predict only an initial depth structure. The physical solver then iterates at the requested labels and abundances, and writes a result only after convergence.
 
 | mode | public coordinates | use |
 | --- | --- | --- |
@@ -53,11 +50,7 @@ after convergence.
 | eight-label | five-label set plus `[C/M]`, `[N/M]`, `[O/M]` | CNO-sensitive mixtures, including evolved giants |
 | direct abundance | `Teff`, `logg`, microturbulence, `[Fe/H]`, and any individual `[X/H]` values | explicit-mixture initializer; requires the optional asset and a converged physical solve |
 
-The five-label initializer is selected by default. Supplying any C, N, or O
-coordinate selects the eight-label initializer. Direct abundance is selected
-explicitly in either interface. Every element is available as an individual
-`X_over_h` coordinate. Unspecified metals inherit `[Fe/H]`; internally the
-complete mixture is re-expressed as `[Fe/H]` and 80 `[X/Fe]` coordinates.
+The five-label initializer is selected by default. Supplying any C, N, or O coordinate selects the eight-label initializer. Direct abundance is selected explicitly in either interface. Every element is available as an individual `X_over_h` coordinate. Unspecified metals inherit `[Fe/H]`; internally the complete mixture is re-expressed as `[Fe/H]` and 80 `[X/Fe]` coordinates.
 
 The command-line and Python names map to the scientific coordinates as follows:
 
@@ -73,15 +66,7 @@ The command-line and Python names map to the scientific coordinates as follows:
 | `[O/M]` | `--o-over-m` | `o_over_m` | 8D |
 | individual `[X/H]` | `--x-over-h` such as `--mg-over-h` | `x_over_h` such as `mg_over_h` | direct abundance |
 
-The common five- and eight-label support is approximately 4,000--10,500 K in
-effective temperature, 0.7--5.3 in `logg`, -2.5--0.5 in `[M/H]`, -0.1--0.5 in
-`[alpha/M]`, and 0.5--4.0 km s^-1 in microturbulence. The CNO coordinates span
-about -0.5--0.5 dex relative to the base metal mixture. The direct-abundance
-interface uses the same stellar range and accepts -0.5--0.5 in each `[X/Fe]`.
-Exact contracts are documented in the atmosphere README.
-The complete initializer training corpora are available as an optional
-[v1.3 data bundle](source_data_files/atmosphere_emulator/TRAINING_CORPORA.md);
-they are not downloaded for ordinary installation.
+The common five- and eight-label support is approximately 4,000--10,500 K in effective temperature, 0.7--5.3 in `logg`, -2.5--0.5 in `[M/H]`, -0.1--0.5 in `[alpha/M]`, and 0.5--4.0 km s^-1 in microturbulence. The CNO coordinates span about -0.5--0.5 dex relative to the base metal mixture. The direct-abundance interface uses the same stellar range and accepts -0.5--0.5 in each `[X/Fe]`. Exact contracts are documented in the atmosphere README. The complete initializer training corpora are available as an optional [v1.3 data bundle](source_data_files/atmosphere_emulator/TRAINING_CORPORA.md); they are not downloaded for ordinary installation.
 
 ## Basic workflow
 
@@ -94,8 +79,7 @@ python -m payne_zero_atmosphere \
   --out runs/sun
 ```
 
-This writes `runs/sun/payne_zero_structured_atmosphere.npz`. Synthesize a
-spectrum from that product:
+This writes `runs/sun/payne_zero_structured_atmosphere.npz`. Synthesize a spectrum from that product:
 
 ```bash
 python -m payne_zero_synthesis.cli \
@@ -104,9 +88,7 @@ python -m payne_zero_synthesis.cli \
   --wl-start-nm 400 --wl-end-nm 900 --r-grid 20000
 ```
 
-The synthesis device defaults to CUDA, then Metal, then CPU. `--r-grid` is the
-sampling density of the intrinsic model grid, not the resolving power of an
-instrument.
+The synthesis device defaults to CUDA, then Metal, then CPU. `--r-grid` is the sampling density of the intrinsic model grid, not the resolving power of an instrument.
 
 The corresponding Python interface is:
 
@@ -130,18 +112,16 @@ spectrum = synthesize(
     wavelength_start_nm=1500,
     wavelength_end_nm=1700,
     resolution=300000,
-    device="cuda",
+    device="auto",
+    dtype="auto",
 )
 ```
 
-Supplying the CNO coordinates in this example selects the eight-label
-initializer. The atmosphere README gives complete CLI and Python examples for
-the 81-element initializer.
+Supplying the CNO coordinates in this example selects the eight-label initializer. The atmosphere README gives complete CLI and Python examples for the 81-element initializer.
 
 ## Performance
 
-The following warm measurements exclude installation and first-use cache
-construction. They are guides rather than hardware-independent guarantees.
+The following warm measurements exclude installation and first-use cache construction. They are guides rather than hardware-independent guarantees.
 
 | calculation | hardware and setup | measured wall time |
 | --- | --- | ---: |
@@ -153,57 +133,29 @@ construction. They are guides rather than hardware-independent guarantees.
 | APOGEE normalized-spectrum synthesis search | one H100 | median 43 s per star in the retained survey experiment |
 | 101,124-parameter standard-star line calibration | one H100 | about 1--10 min, depending on the target and convergence path |
 
-Atmosphere iteration is CPU-oriented because its ordered outer iteration does
-not benefit from the available GPU implementation. Synthesis is parallel over
-wavelength and line profiles, so CUDA is the preferred production path. Metal
-is supported on Apple Silicon for local work, and both packages retain CPU
-fallbacks.
+Atmosphere iteration is CPU-oriented because its ordered outer iteration does not benefit from the available GPU implementation. Synthesis is parallel over wavelength and line profiles, so CUDA is the preferred production path. Metal is supported on Apple Silicon for local work, and both packages retain CPU fallbacks.
 
-Atmosphere kernels and prepared synthesis windows default to
-`.cache/payne-zero/` in a source checkout. The molecular source parser uses
-`~/.cache/payne-zero-synthesis/` unless `PAYNE_ZERO_SYNTHESIS_CACHE_DIR` is
-set. Set that variable and `PAYNE_ZERO_NUMBA_CACHE_DIR` to relocate the
-persistent caches.
+Atmosphere kernels and prepared synthesis windows default to `.cache/payne-zero/` in a source checkout. The molecular source parser uses `~/.cache/payne-zero-synthesis/` unless `PAYNE_ZERO_SYNTHESIS_CACHE_DIR` is set. Set that variable and `PAYNE_ZERO_NUMBA_CACHE_DIR` to relocate the persistent caches.
 
 ## Fitting and line calibration
 
-[`fitter/`](fitter/README.md) fits normalized spectra with inverse-variance
-weights, bounds, optional Jacobians, profiled linear continua, trust regions,
-and complete parameter and spectrum traces. A separate callback can replace
-the initialized atmosphere with a converged physical atmosphere and refine the
-candidate when needed. Instrument-specific operations remain in adapters such
-as `fitter/apogee/`.
+[`fitter/`](fitter/README.md) fits normalized spectra with inverse-variance weights, bounds, optional Jacobians, profiled linear continua, trust regions, and complete parameter and spectrum traces. A separate callback can replace the initialized atmosphere with a converged physical atmosphere and refine the candidate when needed. Instrument-specific operations remain in adapters such as `fitter/apogee/`.
 
-[`linelist_calibration/`](linelist_calibration/README.md) optimizes continuous
-atomic parameters through a user-supplied differentiable synthesis callback.
-It supports multiple spectra and bounded joint optimization. The unchanged
-Kurucz line catalog remains the default; optional Sun--Arcturus overlays are
-provided separately with their provenance.
+[`linelist_calibration/`](linelist_calibration/README.md) optimizes continuous atomic parameters through a user-supplied differentiable synthesis callback. It supports multiple spectra and bounded joint optimization. The unchanged Kurucz line catalog remains the default; optional Sun--Arcturus overlays are provided separately with their provenance.
 
 ## Products and conventions
 
-`payne_zero_structured_atmosphere.npz` is the interchange product between the
-two physical stages. Its machine-readable schema is
-[`payne_zero_synthesis/atmosphere_schema.json`](payne_zero_synthesis/atmosphere_schema.json).
-The spectrum product contains wavelength, total and continuum surface
-`F_lambda` per nanometer, normalized flux, and runtime metadata.
+`payne_zero_structured_atmosphere.npz` is the interchange product between the two physical stages. Its machine-readable schema is [`payne_zero_synthesis/atmosphere_schema.json`](payne_zero_synthesis/atmosphere_schema.json). The spectrum product contains wavelength, total and continuum surface `F_lambda` per nanometer, normalized flux, and runtime metadata.
 
-The abundance reference is AGSS09. `[M/H]` changes all metals, `[alpha/M]`
-adds a common offset to O, Ne, Mg, Si, S, Ca, and Ti, and explicit CNO values
-replace the corresponding offsets in the eight-label mode. Detailed abundance
-and file-format conventions are in the atmosphere and synthesis READMEs.
+The abundance reference is AGSS09. `[M/H]` changes all metals, `[alpha/M]` adds a common offset to O, Ne, Mg, Si, S, Ca, and Ti, and explicit CNO values replace the corresponding offsets in the eight-label mode. Detailed abundance and file-format conventions are in the atmosphere and synthesis READMEs.
 
 ## License
 
-Payne Zero-authored code is released under the
-[BSD 3-Clause License](LICENSE).
+Payne Zero-authored code is released under the [BSD 3-Clause License](LICENSE).
 
 ## Citation
 
-If Payne Zero contributes to a publication, please cite Ting & Kim,
-*The Payne Zero Project I: Stellar Spectra from Physical Models in Seconds*,
-submitted to the *Open Journal of Astrophysics*. The arXiv identifier will be
-added when it is assigned.
+If Payne Zero contributes to a publication, please cite Ting & Kim, *The Payne Zero Project I: Stellar Spectra from Physical Models in Seconds*, submitted to the *Open Journal of Astrophysics*. The arXiv identifier will be added when it is assigned.
 
 ```bibtex
 @unpublished{TingKim2026PayneZero,

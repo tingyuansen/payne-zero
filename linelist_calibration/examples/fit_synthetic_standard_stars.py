@@ -81,7 +81,17 @@ def build_example() -> tuple[
 
     def model(corrections_dex: torch.Tensor) -> torch.Tensor:
         strengths = torch.pow(10.0, corrections_dex)
-        return torch.cat(tuple(1.0 - template @ strengths for template in templates))
+        return torch.cat(
+            tuple(
+                1.0
+                - template.to(
+                    device=corrections_dex.device,
+                    dtype=corrections_dex.dtype,
+                )
+                @ strengths
+                for template in templates
+            )
+        )
 
     return data, configuration, model
 

@@ -19,6 +19,12 @@ dependencies = [
   "torch>=2.2",
 ]
 
+[project.optional-dependencies]
+tutorial = [
+  "jupyterlab>=4.2",
+  "matplotlib>=3.8",
+]
+
 [project.urls]
 Repository = "https://github.com/tingyuansen/payne-zero"
 

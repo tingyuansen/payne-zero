@@ -1,14 +1,8 @@
 # Payne Zero Atmosphere
 
-`payne_zero_atmosphere` predicts a complete warm-start structure and iterates
-it to a converged one-dimensional LTE model atmosphere. The solver is
-CPU-only and uses compiled Numba kernels. Independent stars are the natural
-unit of parallel work.
+`payne_zero_atmosphere` predicts a complete warm-start structure and iterates it to a converged one-dimensional LTE model atmosphere. The solver is CPU-only and uses compiled Numba kernels. Independent stars are the natural unit of parallel work.
 
-The public product is a structured-atmosphere NPZ consumed directly by
-`payne_zero_synthesis`. Text atmosphere decks are retained only as a
-fixed-column compatibility boundary for the independent pykurucz reference
-and for the in-memory quantization used by the certified solver path.
+The public product is a structured-atmosphere NPZ consumed directly by `payne_zero_synthesis`. Text atmosphere decks are retained only as a fixed-column compatibility boundary for the independent pykurucz reference and for the in-memory quantization used by the certified solver path.
 
 ## Command Line
 
@@ -19,8 +13,7 @@ python -m payne_zero_atmosphere \
   --out runs/sun
 ```
 
-This writes `runs/sun/payne_zero_structured_atmosphere.npz` only after the
-exact solver satisfies its convergence criterion.
+This writes `runs/sun/payne_zero_structured_atmosphere.npz` only after the exact solver satisfies its convergence criterion.
 
 An eight-coordinate giant request is explicit:
 
@@ -51,15 +44,11 @@ python -m payne_zero_atmosphere \
 | `--initializer-seed` | `20260713` | deterministic trial seed |
 | `--initializer-jitter-scale` | `0.01` | nearby offset as a fraction of label span |
 
-The production solve enables molecules, convection, and the full source-line
-catalogs. It requires at least three iterations, one consecutive converged
-iteration, and a maximum deep-layer relative temperature change of `5e-4`.
-The requested stellar labels never change during a nearby-initializer retry.
+The production solve enables molecules, convection, and the full source-line catalogs. It requires at least three iterations, one consecutive converged iteration, and a maximum deep-layer relative temperature change of `5e-4`. The requested stellar labels never change during a nearby-initializer retry.
 
 ## Initializers
 
-Every initializer predicts the same six atmosphere fields. It changes the
-starting point, not the requested physical model or the convergence test.
+Every initializer predicts the same six atmosphere fields. It changes the starting point, not the requested physical model or the convergence test.
 
 | mode | public coordinates | selection |
 | --- | --- | --- |
@@ -67,31 +56,19 @@ starting point, not the requested physical model or the convergence test.
 | eight-label | five-label set plus `[C/M]`, `[N/M]`, `[O/M]` | automatic when any CNO coordinate is supplied |
 | direct abundance | `Teff`, `logg`, microturbulence, `[Fe/H]`, and any individual `[X/H]` values | explicit CLI or Python selection |
 
-The five- and eight-label initializers are installed by default. An
-out-of-support query warns and clips only the initializer input to its support
-boundary. The physical solve still uses the exact requested labels and writes
-the structured product only after convergence.
+The five- and eight-label initializers are installed by default. An out-of-support query warns and clips only the initializer input to its support boundary. The physical solve still uses the exact requested labels and writes the structured product only after convergence.
 
 ### Direct-abundance initializer
 
-The optional direct-abundance initializer exposes every supported element as an
-individual coordinate, such as `fe_over_h`, `mg_over_h`, or `c_over_h`. It is
-selected explicitly, and its decoded structure is always followed by the
-physical solve before synthesis.
+The optional direct-abundance initializer exposes every supported element as an individual coordinate, such as `fe_over_h`, `mg_over_h`, or `c_over_h`. It is selected explicitly, and its decoded structure is always followed by the physical solve before synthesis.
 
 Install its optional checkpoint with
 
 ```bash
-PAYNE_ZERO_INCLUDE_DIRECT_XH=1 ./install.sh
+PAYNE_ZERO_INCLUDE_DIRECT_ABUNDANCE=1 ./install.sh
 ```
 
-Supply `[Fe/H]` and any elements that differ from it. Unspecified metals inherit
-`[Fe/H]`, producing the complete mixture used by the atmosphere and synthesis
-calculations. The support is
-4,000--10,500 K, `logg` 0.7--5.3, microturbulence 0.5--4.0 km s^-1, `[Fe/H]`
--2.5--0.5, and each `[X/Fe]` -0.5--0.5. The public input remains 81 `[X/H]`
-values; `[Fe/H]` and `[X/Fe]` are only the network's internal coordinates.
-Inputs are quantized to the solver's 0.01 dex abundance precision.
+Supply `[Fe/H]` and any elements that differ from it. Unspecified metals inherit `[Fe/H]`, producing the complete mixture used by the atmosphere and synthesis calculations. The support is 4,000--10,500 K, `logg` 0.7--5.3, microturbulence 0.5--4.0 km s^-1, `[Fe/H]` -2.5--0.5, and each `[X/Fe]` -0.5--0.5. The public input remains 81 `[X/H]` values; `[Fe/H]` and `[X/Fe]` are only the network's internal coordinates. Inputs are quantized to the solver's 0.01 dex abundance precision.
 
 The 81 available elements are Li--Mo, Ru--Nd, Sm--Bi, Th, and U.
 
@@ -105,9 +82,7 @@ python -m payne_zero_atmosphere \
   --out runs/direct-abundance
 ```
 
-Supplying any `--x-over-h` option selects the direct-abundance initializer. A
-JSON object supplied through `--abundance-file` is convenient for many
-coordinates; its keys may be symbols or atomic numbers.
+Supplying any `--x-over-h` option selects the direct-abundance initializer. A JSON object supplied through `--abundance-file` is convenient for many coordinates; its keys may be symbols or atomic numbers.
 
 ### Validated initializer coverage
 
@@ -121,27 +96,18 @@ The common ordinary-star support is approximately:
 | alpha enhancement | -0.1 to +0.5 [alpha/M] |
 | microturbulence | 0.5-4.0 km s^-1 |
 
-The three CNO coordinates cover approximately `-0.5 <= [X/M] <= 0.5`.
-Exact asset hashes, serialized compatibility keys, and training-corpus
-provenance are recorded in
-[`release_manifest.json`](../source_data_files/atmosphere_emulator/release_manifest.json).
+The three CNO coordinates cover approximately `-0.5 <= [X/M] <= 0.5`. Exact asset hashes, serialized compatibility keys, and training-corpus provenance are recorded in [`release_manifest.json`](../source_data_files/atmosphere_emulator/release_manifest.json).
 
 ## Abundances
 
-The reference mixture is AGSS09 by number, with helium fixed at `0.078370`.
-The public abundance coordinates are:
+The reference mixture is AGSS09 by number, with helium fixed at `0.078370`. The public abundance coordinates are:
 
 - `[M/H]`: applied to every metal (`Z >= 3`);
 - `[alpha/M]`: applied in addition to O, Ne, Mg, Si, S, Ca, and Ti;
-- `[C/M]`, `[N/M]`, `[O/M]`: learned eight-label coordinates, with explicit
-  oxygen replacing the alpha-scaled oxygen offset;
-- `[X/H]`: an advanced exact-solver override relative to solar. Arbitrary
-  per-element abundances are not learned coordinates of either validated
-  default initializer. The separately installed direct-abundance initializer
-  learns an 81-element starting structure but never replaces the exact solve.
+- `[C/M]`, `[N/M]`, `[O/M]`: learned eight-label coordinates, with explicit oxygen replacing the alpha-scaled oxygen offset;
+- `[X/H]`: an advanced exact-solver override relative to solar. Arbitrary per-element abundances are not learned coordinates of either validated default initializer. The separately installed direct-abundance initializer learns an 81-element starting structure but never replaces the exact solve.
 
-Hydrogen is renormalized after helium and metals are assigned. The user-facing
-name `metallicity` always means [M/H], not [Fe/H].
+Hydrogen is renormalized after helium and metals are assigned. The user-facing name `metallicity` always means [M/H], not [Fe/H].
 
 ## Python API
 
@@ -161,8 +127,7 @@ path = solve_structured_atmosphere(
 )
 ```
 
-Omit the three CNO keywords for the 5D initializer. The direct-abundance API
-uses the same high-level solver:
+Omit the three CNO keywords for the 5D initializer. The direct-abundance API uses the same high-level solver:
 
 ```python
 from payne_zero_atmosphere import solve_structured_atmosphere
@@ -177,8 +142,7 @@ path = solve_structured_atmosphere(
 )
 ```
 
-Any of the 81 element names can be supplied independently. The lower-level
-`abundance_by_atomic_number` mapping remains available for generated mixtures.
+Any of the 81 element names can be supplied independently. The lower-level `abundance_by_atomic_number` mapping remains available for generated mixtures.
 
 Advanced callers may supply an in-memory `ModelAtmosphere` directly:
 
@@ -220,18 +184,13 @@ result = run_atmosphere_model(
 assert result.converged
 ```
 
-The production default requires at least three physical iterations before the
-convergence test can stop the solve.
+The production default requires at least three physical iterations before the convergence test can stop the solve.
 
-`AtmosphereInput.initial_atmosphere` accepts a `ModelAtmosphere`, not a path.
-`read_atmosphere_deck` is an explicit external-reference boundary that returns
-such a model when a historical text atmosphere must be compared.
+`AtmosphereInput.initial_atmosphere` accepts a `ModelAtmosphere`, not a path. `read_atmosphere_deck` is an explicit external-reference boundary that returns such a model when a historical text atmosphere must be compared.
 
 ## Structured Atmosphere Schema
 
-The machine-readable contract is
-[`payne_zero_synthesis/atmosphere_schema.json`](../payne_zero_synthesis/atmosphere_schema.json).
-Schema version 4 makes the population semantics explicit:
+The machine-readable contract is [`payne_zero_synthesis/atmosphere_schema.json`](../payne_zero_synthesis/atmosphere_schema.json). Schema version 4 makes the population semantics explicit:
 
 | field | unit | meaning |
 | --- | --- | --- |
@@ -251,25 +210,15 @@ Schema version 4 makes the population semantics explicit:
 | `elemental_abundances` | relative number fraction | elements Z=1..99 |
 | `continuum_edge_*` | Hz or nm | continuum sampling edges and intervals |
 
-Actual populations and partition-normalized populations are distinct physical
-quantities. Free-free opacity uses the actual ion-stage cube; bound opacity
-uses partition-normalized populations. Schema versions 1 through 3 are
-accepted only by the synthesis loader as a read-only compatibility boundary;
-pre-version-3 population cubes are reconstructed before calculation.
+Actual populations and partition-normalized populations are distinct physical quantities. Free-free opacity uses the actual ion-stage cube; bound opacity uses partition-normalized populations. Schema versions 1 through 3 are accepted only by the synthesis loader as a read-only compatibility boundary; pre-version-3 population cubes are reconstructed before calculation.
 
 ## Fixed-Column Quantization
 
-Warm starts and converged columns pass through the reference implementation's
-fixed-digit column format in memory. This is a numerical compatibility rule:
-the finite digits alter the exact solver trajectory. No text atmosphere is a
-production artifact, and synthesis never parses one. `atmosphere_io.py` owns
-this narrow external/quantization boundary.
+Warm starts and converged columns pass through the reference implementation's fixed-digit column format in memory. This is a numerical compatibility rule: the finite digits alter the exact solver trajectory. No text atmosphere is a production artifact, and synthesis never parses one. `atmosphere_io.py` owns this narrow external/quantization boundary.
 
 ## Execution
 
-Compiled Numba kernels use the configured CPU thread pool. Line selection is
-computed once from the resident catalogs for each atmosphere solve and reused
-across its iterations.
+Compiled Numba kernels use the configured CPU thread pool. Line selection is computed once from the resident catalogs for each atmosphere solve and reused across its iterations.
 
 Run the one-time installation prewarm before timing or producing a grid:
 
@@ -278,11 +227,7 @@ python -m payne_zero_atmosphere.prewarm \
   --out-dir .cache/payne-zero/prewarm-atmosphere
 ```
 
-Compiled artifacts default to `.cache/payne-zero/numba-atmosphere/`. A matching
-later prewarm is a no-op. Re-run it after changing Python, Numba, CPU class,
-kernel source, or runtime catalogs. The prewarm covers hot, solar, giant, and
-atomic-only branches with the complete source catalogs, including TiO and H2O.
-It is installation work and is excluded from atmosphere timings.
+Compiled artifacts default to `.cache/payne-zero/numba-atmosphere/`. A matching later prewarm is a no-op. Re-run it after changing Python, Numba, CPU class, kernel source, or runtime catalogs. The prewarm covers hot, solar, giant, and atomic-only branches with the complete source catalogs, including TiO and H2O. It is installation work and is excluded from atmosphere timings.
 
 | environment variable | effect |
 | --- | --- |

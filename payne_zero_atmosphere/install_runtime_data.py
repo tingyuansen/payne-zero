@@ -31,8 +31,8 @@ _DEFAULT_INITIALIZER_PATHS = {
     "atmosphere_emulator/five_label/checkpoint.pt",
     "atmosphere_emulator/cno8/checkpoint.pt",
 }
-_DIRECT_XH_INITIALIZER_PATH = "atmosphere_emulator/direct_xh_experimental/checkpoint.pt"
-_DIRECT_XH_METADATA_PATH = "atmosphere_emulator/direct_xh_experimental/manifest.json"
+_DIRECT_XH_INITIALIZER_PATH = "atmosphere_emulator/direct_abundance/checkpoint.pt"
+_DIRECT_XH_METADATA_PATH = "atmosphere_emulator/direct_abundance/manifest.json"
 _DIRECT_XH_METADATA_SHA256 = (
     "fb59da5e6bd3f8fcba06e0c4c284137e90aab5c4e93165daa74d8ce2ae268710"
 )

@@ -1,0 +1,13 @@
+{
+  "object_id": "2M08002084+4044415",
+  "data_release": "APOGEE DR14",
+  "effective_temperature": 4858.537,
+  "log_surface_gravity": 2.426797,
+  "metallicity": -0.3255714,
+  "alpha_enhancement": 0.2527028,
+  "microturbulence_km_s": 1.278733,
+  "macroscopic_broadening_km_s": 3.617606,
+  "carbon_over_m": 0.22835,
+  "nitrogen_over_m": 0.059777,
+  "source": "Public APOGEE DR14 aspcapStar combined spectrum, prepared on the retained 7,514-pixel grid used by the Payne Zero APOGEE adapter."
+}
