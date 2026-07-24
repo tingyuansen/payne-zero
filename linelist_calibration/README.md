@@ -1,6 +1,6 @@
 # Differentiable line-list calibration
 
-`linelist_calibration` fits continuous atomic parameters through differentiable Payne Zero synthesis. The physical model holds an atmosphere fixed, recalculates the selected line opacity and transfer solution, and compares the broadened result with a standard-star spectrum. The generic optimizer can combine several stars, normalization, and instrument responses in one PyTorch callback.
+`linelist_calibration` fits continuous atomic parameters through differentiable Payne Zero synthesis. The physical model holds a converged atmosphere fixed, recalculates the selected line opacity and transfer solution, and compares the broadened result with a standard-star spectrum. The generic optimizer can combine several stars, normalization, and instrument responses in one PyTorch callback.
 
 From a checkout, run `./install.sh` at the repository root before using the interface.
 

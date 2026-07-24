@@ -4,6 +4,8 @@
 
 From a checkout, run `./install.sh` at the repository root before using the interface.
 
+The examples use fast synthesis from labels for repeated trial spectra. Use the converged-atmosphere refinement when the retained result must be synthesized from a physically converged atmosphere.
+
 ## Fit a spectrum from any instrument
 
 The generic path has four explicit pieces: the observed arrays, a Payne Zero label-to-spectrum callback, an instrument operator, and the fit configuration. The example below assumes that `wavelength_nm`, `flux`, `inverse_variance`, and `good_pixel_mask` came from a survey reduction or a standard-star atlas.

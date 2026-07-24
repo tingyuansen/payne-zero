@@ -4,6 +4,8 @@
 
 The public product is a structured-atmosphere NumPy `.npz` archive consumed directly by `payne_zero_synthesis`. Text atmosphere decks are retained only as a fixed-column compatibility boundary for the independent pykurucz reference and for the in-memory quantization used by the certified solver path.
 
+Use this package when the atmosphere itself is a retained result or when a final spectrum must use a physically converged structure. For rapid exploration or repeated spectral fitting, `payne_zero_synthesis.synthesize_from_labels(...)` can synthesize directly from an initialized atmosphere without running this iterative solve.
+
 ## Command-line interface
 
 ```bash
@@ -60,7 +62,7 @@ The five- and eight-label initializers are installed by default. An out-of-suppo
 
 ### Direct-abundance initializer
 
-The optional direct-abundance initializer exposes every supported element as an individual coordinate, such as `fe_over_h`, `mg_over_h`, or `c_over_h`. When used through this atmosphere interface, its decoded structure is followed by the physical solve before synthesis. The synthesis interface can use the same initialized structure for a fast optimizer model and marks that product as unconverged.
+The optional direct-abundance initializer exposes every supported element as an individual coordinate, such as `fe_over_h`, `mg_over_h`, or `c_over_h`. This atmosphere interface always follows the decoded starting structure with the physical solve. The synthesis interface can instead use the initialized structure directly when many fast spectral evaluations are required.
 
 From the repository root, install its optional checkpoint with
 

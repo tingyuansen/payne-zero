@@ -4,7 +4,18 @@
 
 The implementation uses PyTorch and selects NVIDIA CUDA, then Apple Metal, then a central processing unit (CPU) when no device is specified. CUDA and Metal accelerate broad wavelength windows, while CPU execution remains available for deterministic verification or systems without a suitable graphics processor. If the numerical data type is also omitted, the Python interface uses 32-bit floating point on Metal and 64-bit floating point on CUDA or CPU.
 
+## Choose a workflow
+
+| workflow | entry point | choose it when |
+| --- | --- | --- |
+| fast synthesis from labels | `payne-zero-synthesis` without an atmosphere path, or `synthesize_from_labels(...)` | exploring labels or evaluating many nearby spectra |
+| converged atmosphere and synthesis | `payne-zero-atmosphere`, then `payne-zero-synthesis ATMOSPHERE` or `synthesize(...)` | retaining the atmosphere or requiring a final spectrum from a physically converged structure |
+
+Both workflows use the same synthesis kernels. The fast path predicts and population-bridges an initialized atmosphere but does not run the iterative atmosphere solver.
+
 ## Command-line interface
+
+### Fast synthesis from labels
 
 Five-label synthesis is the default:
 
@@ -41,7 +52,9 @@ payne-zero-synthesis \
 
 Every element represented by the direct initializer has an `--x-over-h` flag such as `--mg-over-h`. The repeatable generic spelling `--abundance Mg:-0.15` and a JSON `--abundance-file` are also accepted. Unspecified elements inherit `[Fe/H]`.
 
-Pass a structured atmosphere as the positional argument when the atmosphere has already been solved:
+### Synthesis from a converged atmosphere
+
+Pass the structured product from `payne-zero-atmosphere` as the positional argument:
 
 ```bash
 payne-zero-synthesis atmosphere.npz \
@@ -56,7 +69,7 @@ payne-zero-synthesis atmosphere.npz \
 | `--metallicity`, `--alpha-enhancement` | `0`, `0` | `[M/H]` and `[alpha/M]` in five- or eight-label mode |
 | `--c-over-m`, `--n-over-m`, `--o-over-m` | omitted | independent CNO coordinates; select eight-label mode |
 | `--initializer direct-abundance`, `--x-over-h` | omitted | individual `[X/H]` mode |
-| `--save-initialized-atmosphere` | omitted | retain the predicted population-bridged atmosphere with an explicit unconverged-product marker |
+| `--save-initialized-atmosphere` | omitted | retain the initialized atmosphere with explicit role and provenance metadata |
 | `--wl-start-nm`, `--wl-end-nm` | `400`, `900` | wavelength bounds [nm] |
 | `--r-grid`, `--resolution` | `20000` | logarithmic intrinsic-grid density, `R_grid` |
 | `--device` | best available | NVIDIA CUDA, Apple Metal, or CPU |
@@ -72,13 +85,15 @@ Every spectrum NumPy archive contains:
 - `normalized_flux = flux_total / flux_continuum`;
 - `seconds`, the complete wall time represented by that product.
 
-For archive-based `synthesize(...)`, `seconds` is the synthesis wall time. Label-driven products also contain `initializer_family`, `atmosphere_converged`, `atmosphere_closure_required`, `initializer_seconds`, `population_bridge_seconds`, `synthesis_seconds`, and `metadata_json`; their `seconds` value is the sum of initialization, population bridging, and synthesis. Use `synthesis_seconds` when comparing only the spectral calculation.
+For archive-based `synthesize(...)`, `seconds` is the synthesis wall time. Label-driven products also contain the initializer family, stage timings, and metadata that identifies the atmosphere as initialized; their `seconds` value is the sum of initialization, population bridging, and synthesis. Use `synthesis_seconds` when only the spectral calculation is needed.
 
 Transfer is evaluated internally as Eddington `H_nu`. The public interface applies `F = 4 pi H` and the exact frequency-to-wavelength Jacobian needed to return both surface-flux arrays per nanometer.
 
 ## Python interface
 
-Use `synthesize_from_labels` for the common path:
+### Fast synthesis from labels
+
+Use `synthesize_from_labels` for repeated label-driven calculations:
 
 ```python
 from payne_zero_synthesis import synthesize_from_labels
@@ -123,18 +138,32 @@ direct = synthesize_from_labels(
 )
 ```
 
-The result contains the spectrum, initializer family, input labels, stage timings, and the in-memory initialized atmosphere. `atmosphere_converged` is false because no iterative physical atmosphere solve occurs in this fast path. Pass `result.initialized_atmosphere` to `synthesize` to reuse the population state over another wavelength interval. Saving it with `result.initialized_atmosphere.save_npz(...)` preserves typed `atmosphere_converged=False`, initializer-family, and provenance metadata alongside the physical arrays. The ordinary atmosphere loader ignores this extension and remains compatible with the saved archive. `load_atmosphere_product_metadata(...)` reads the marker explicitly when a workflow needs to distinguish an initializer prediction from a converged physical atmosphere.
+The result contains the spectrum, initializer family, input labels, stage timings, and the in-memory initialized atmosphere. Pass `result.initialized_atmosphere` to `synthesize` to reuse that population state over another wavelength interval. Saving it with `result.initialized_atmosphere.save_npz(...)` preserves its initializer role, family, and provenance alongside the physical arrays. `load_atmosphere_product_metadata(...)` reads this metadata when a workflow needs to distinguish the saved initializer from a converged physical atmosphere.
 
-Use `synthesize` when a converged or externally supplied atmosphere already exists:
+### Solve a converged atmosphere and synthesize
+
+Use the atmosphere solver first when the retained spectrum must use a physically converged structure:
 
 ```python
+from payne_zero_atmosphere import solve_structured_atmosphere
 from payne_zero_synthesis import synthesize
 
+atmosphere_path = solve_structured_atmosphere(
+    effective_temperature=4800,
+    log_surface_gravity=2.5,
+    metallicity=-0.5,
+    alpha_enhancement=0.3,
+    microturbulence_km_s=1.8,
+    c_over_m=0.1,
+    n_over_m=0.2,
+    o_over_m=0.1,
+    out_dir="runs/giant",
+)
 spectrum = synthesize(
-    "payne_zero_structured_atmosphere.npz",
-    wavelength_start_nm=400,
-    wavelength_end_nm=900,
-    resolution=20_000,
+    atmosphere_path,
+    wavelength_start_nm=1500,
+    wavelength_end_nm=1700,
+    resolution=300_000,
     device="auto",
     dtype="auto",
 )
