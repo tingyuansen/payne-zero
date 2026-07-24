@@ -78,7 +78,7 @@ echo "[payne-zero installer] staging hash-verified initializer assets"
 "$PYTHON" "$runtime_installer" "${initializer_args[@]}"
 if [[ "${PAYNE_ZERO_SKIP_PIP_INSTALL:-0}" != "1" ]]; then
     echo "[payne-zero installer] installing the editable package"
-    "$PYTHON" -m pip install -e . --no-build-isolation
+    "$PYTHON" -m pip install -e .
 fi
 if [[ "$INCLUDE_DIRECT_ABUNDANCE" == "1" ]]; then
     echo "[payne-zero installer] validating direct-[X/H] initializer"
