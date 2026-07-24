@@ -17,15 +17,16 @@ The repository also provides general interfaces for normalized-spectrum fitting 
 
 ## Installation
 
-Python 3.11 or newer and Git Large File Storage (Git LFS) are required. Clone normally so Git LFS downloads the runtime arrays, then run the installer:
+Python 3.11 or newer and Git Large File Storage (Git LFS) are required. To install the published v1.3 release, clone its tag, download every large runtime file, and run the installer:
 
 ```bash
-git clone https://github.com/tingyuansen/payne-zero.git
+git clone --branch v1.3 https://github.com/tingyuansen/payne-zero.git
 cd payne-zero
+git lfs pull
 ./install.sh
 ```
 
-The installer verifies the runtime files, installs the Python packages, and builds persistent caches in `.cache/payne-zero/`. A clean installation can spend 10–20 minutes compiling. Later runs reuse these caches.
+Omit `--branch v1.3` to follow the current development branch. The installer verifies the runtime files, installs the Python packages, and builds persistent caches in `.cache/payne-zero/`. A clean installation can spend 10–20 minutes compiling. Later runs reuse these caches.
 
 The optional direct-abundance initializer is installed only when requested:
 
