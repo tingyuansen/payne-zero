@@ -12,12 +12,14 @@ from .normalized import (
     fit_normalized_spectrum,
     refine_with_physical_atmosphere,
 )
+from .instrument import ObservedSpectrumOperator
 from .rotational_broadening import RotationalBroadening
 
 __all__ = [
     "FitConfiguration",
     "FitResult",
     "NormalizedSpectrum",
+    "ObservedSpectrumOperator",
     "PhysicalAtmosphereCheck",
     "PhysicalAtmosphereConfiguration",
     "PhysicalAtmosphereCorrection",

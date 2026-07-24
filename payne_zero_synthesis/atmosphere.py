@@ -7,15 +7,26 @@ is the contract both packages share.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
 
 
 ATMOSPHERE_SCHEMA_VERSION = 4
+ATMOSPHERE_PRODUCT_METADATA_SCHEMA_VERSION = 1
 LEGACY_ATMOSPHERE_SCHEMA_VERSIONS = (1, 2, 3)
 POPULATION_ION_STAGE_COUNT = 6
 POPULATION_SPECIES_COUNT = 139
+
+ATMOSPHERE_PRODUCT_METADATA_FIELDS = (
+    "atmosphere_product_metadata_schema",
+    "atmosphere_product_role",
+    "atmosphere_converged",
+    "atmosphere_closure_required",
+    "initializer_family",
+    "atmosphere_metadata_json",
+)
 
 REQUIRED_ATMOSPHERE_ARRAYS = (
     "temperature",
@@ -109,6 +120,138 @@ def _read_schema_version(data: np.lib.npyio.NpzFile, path: Path) -> int | None:
             f"{path} atmosphere_schema_version must contain exactly one integer"
         )
     return int(stored.reshape(-1)[0])
+
+
+def _read_scalar_product_field(
+    data: np.lib.npyio.NpzFile,
+    path: Path,
+    name: str,
+    *,
+    kind: str,
+) -> object:
+    stored = np.asarray(data[name])
+    if stored.size != 1 or stored.dtype.kind not in kind:
+        raise ValueError(
+            f"{path} {name} must contain exactly one value of dtype kind {kind}"
+        )
+    return stored.reshape(-1)[0].item()
+
+
+def load_atmosphere_product_metadata(
+    path: str | Path,
+) -> dict[str, object] | None:
+    """Load optional self-identifying metadata from an atmosphere archive.
+
+    Historical and physically converged schema-v4 products remain valid
+    without this extension and return ``None``. An initialized-atmosphere
+    archive written by :class:`InitializedAtmosphere` carries the complete
+    extension so it cannot be mistaken for a converged physical solution.
+    """
+
+    atmosphere_path = Path(path).expanduser()
+    if not atmosphere_path.exists():
+        raise FileNotFoundError(f"atmosphere file does not exist: {atmosphere_path}")
+
+    with np.load(atmosphere_path, allow_pickle=False) as data:
+        present = [
+            name for name in ATMOSPHERE_PRODUCT_METADATA_FIELDS if name in data
+        ]
+        if not present:
+            return None
+        missing = [
+            name for name in ATMOSPHERE_PRODUCT_METADATA_FIELDS if name not in data
+        ]
+        if missing:
+            raise ValueError(
+                f"{atmosphere_path} has an incomplete atmosphere-product "
+                "metadata extension: " + ", ".join(missing)
+            )
+
+        schema = int(
+            _read_scalar_product_field(
+                data,
+                atmosphere_path,
+                "atmosphere_product_metadata_schema",
+                kind="iu",
+            )
+        )
+        if schema != ATMOSPHERE_PRODUCT_METADATA_SCHEMA_VERSION:
+            raise ValueError(
+                f"{atmosphere_path} uses unsupported atmosphere-product "
+                f"metadata schema {schema}; supported version is "
+                f"{ATMOSPHERE_PRODUCT_METADATA_SCHEMA_VERSION}"
+            )
+        role = str(
+            _read_scalar_product_field(
+                data,
+                atmosphere_path,
+                "atmosphere_product_role",
+                kind="SU",
+            )
+        )
+        converged = bool(
+            _read_scalar_product_field(
+                data,
+                atmosphere_path,
+                "atmosphere_converged",
+                kind="b",
+            )
+        )
+        closure_required = bool(
+            _read_scalar_product_field(
+                data,
+                atmosphere_path,
+                "atmosphere_closure_required",
+                kind="b",
+            )
+        )
+        initializer_family = str(
+            _read_scalar_product_field(
+                data,
+                atmosphere_path,
+                "initializer_family",
+                kind="SU",
+            )
+        )
+        metadata_text = str(
+            _read_scalar_product_field(
+                data,
+                atmosphere_path,
+                "atmosphere_metadata_json",
+                kind="SU",
+            )
+        )
+
+    try:
+        detailed = json.loads(metadata_text)
+    except json.JSONDecodeError as error:
+        raise ValueError(
+            f"{atmosphere_path} atmosphere_metadata_json is not valid JSON"
+        ) from error
+    if not isinstance(detailed, dict):
+        raise ValueError(
+            f"{atmosphere_path} atmosphere_metadata_json must contain one object"
+        )
+    if (
+        detailed.get("atmosphere_product_role") != role
+        or detailed.get("initializer_family") != initializer_family
+        or detailed.get("atmosphere_converged") is not converged
+        or detailed.get("atmosphere_closure_required") is not closure_required
+    ):
+        raise ValueError(
+            f"{atmosphere_path} typed atmosphere-product fields disagree with "
+            "atmosphere_metadata_json"
+        )
+    return {
+        "schema": schema,
+        "atmosphere_product_role": role,
+        "atmosphere_converged": converged,
+        "atmosphere_closure_required": closure_required,
+        "initializer_family": initializer_family,
+        "labels": detailed.get("labels"),
+        "provenance": detailed.get("provenance"),
+        "timings": detailed.get("timings"),
+    }
 
 
 def load_atmosphere_npz(path: str | Path) -> dict[str, np.ndarray]:

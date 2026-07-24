@@ -9,6 +9,6 @@ Elliot M. Kim and Yuan-Sen Ting, pyKurucz: A Pure Python Reimplementation of Kur
 
 pyKurucz is MIT licensed, copyright (c) 2026 Elliot M. Kim and Yuan-Sen Ting.
 
-The representative APOGEE line-spread-function builder follows the public jobovy/apogee implementation, copyright (c) 2013 Jo Bovy, distributed under the BSD 3-Clause License. APOGEE survey products are provided by SDSS. The solar and Arcturus calibration overlays were derived from the NSO/Kitt Peak solar FTS atlas and the Hinkle, Wallace & Livingston Arcturus atlas. The distributed overlays contain fitted corrections, not atlas spectra.
+The representative APOGEE line-spread-function builder follows the public jobovy/apogee implementation, copyright (c) 2013 Jo Bovy, distributed under the BSD 3-Clause License. APOGEE survey products are provided by SDSS. The solar and Arcturus calibration overlays were derived from the NSO/Kitt Peak solar FTS atlas and the Hinkle, Wallace & Livingston Arcturus atlas. A small excerpt of the Livingston & Wallace (1991) NSO/Kitt Peak solar center-of-disk FTS atlas is included with the physical line-calibration example. The remaining distributed calibration products contain fitted corrections rather than atlas spectra.
 
 Payne Zero-authored source code and generated model products are covered by the repository LICENSE. Upstream programs, catalogs, tables, and survey products retain their original attribution and terms.

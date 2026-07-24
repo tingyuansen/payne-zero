@@ -42,13 +42,13 @@ jupyter lab payne_zero_tutorial.ipynb
 
 ## Atmosphere modes
 
-All three modes predict only an initial depth structure. The physical solver then iterates at the requested labels and abundances, and writes a result only after convergence. Here `Teff` denotes effective temperature, `logg` denotes the base-10 logarithm of surface gravity, and CNO denotes carbon, nitrogen, and oxygen.
+The three initializer families turn stellar labels into a complete depth structure. That prediction can be used immediately for fast synthesis and repeated fitting. When a physically converged atmosphere is required, the atmosphere solver uses the same prediction as its starting state and iterates at the requested mixture. Here `Teff` denotes effective temperature, `logg` denotes the base-10 logarithm of surface gravity, and CNO denotes carbon, nitrogen, and oxygen.
 
 | mode | public coordinates | use |
 | --- | --- | --- |
 | five-label | `Teff`, `logg`, `[M/H]`, `[alpha/M]`, microturbulence | default ordinary-star atmosphere |
 | eight-label | five-label set plus `[C/M]`, `[N/M]`, `[O/M]` | carbon-, nitrogen-, and oxygen-sensitive mixtures, including evolved giants |
-| direct abundance | `Teff`, `logg`, microturbulence, `[Fe/H]`, and any individual `[X/H]` values | explicit-mixture initializer; requires the optional asset and a converged physical solve |
+| direct abundance | `Teff`, `logg`, microturbulence, `[Fe/H]`, and any individual `[X/H]` values | explicit abundance mixtures; requires the optional initializer asset |
 
 The five-label initializer is selected by default. Supplying any C, N, or O coordinate selects the eight-label initializer. Direct abundance is selected explicitly in either interface. Every supported element is available as an individual `X_over_h` coordinate. Unspecified metals inherit `[Fe/H]`; internally the complete mixture is re-expressed as `[Fe/H]` and 80 `[X/Fe]` coordinates.
 
@@ -64,60 +64,114 @@ The command-line and Python names map to the scientific coordinates as follows:
 | `[C/M]` | `--c-over-m` | `c_over_m` | eight-label |
 | `[N/M]` | `--n-over-m` | `n_over_m` | eight-label |
 | `[O/M]` | `--o-over-m` | `o_over_m` | eight-label |
-| individual `[X/H]` | `--x-over-h` such as `--mg-over-h` | `x_over_h` such as `mg_over_h` | direct abundance |
+| `[Fe/H]` | `--fe-over-h` | `fe_over_h` | direct abundance |
+| individual `[X/H]` | element flags such as `--mg-over-h` | `x_over_h` mapping such as `{"Mg": -0.2}` | direct abundance |
 
 The common five- and eight-label support is approximately 4,000–10,500 K in effective temperature, 0.7–5.3 in `logg`, −2.5–0.5 in `[M/H]`, −0.1–0.5 in `[alpha/M]`, and 0.5–4.0 km s⁻¹ in microturbulence. The CNO coordinates span about −0.5–0.5 dex relative to the base metal mixture. The direct-abundance interface uses the same stellar range and accepts −0.5–0.5 in each `[X/Fe]`. Exact contracts are documented in the atmosphere README. The complete initializer training corpora are available as an optional [v1.3 data bundle](source_data_files/atmosphere_emulator/TRAINING_CORPORA.md); they are not downloaded for ordinary installation.
 
-## Basic workflow
+## Synthesize directly from stellar labels
 
-Solve an atmosphere:
+The common entry point needs stellar labels, a wavelength interval, and the sampling density of the intrinsic spectrum. It predicts the atmosphere, builds its chemical populations, and synthesizes without an intermediate file:
 
 ```bash
-python -m payne_zero_atmosphere \
+payne-zero-synthesis \
   --effective-temperature 5777 \
   --log-surface-gravity 4.44 \
-  --out runs/sun
+  --metallicity 0.0 \
+  --alpha-enhancement 0.0 \
+  --microturbulence-km-s 1.0 \
+  --wl-start-nm 500 --wl-end-nm 510 --r-grid 20000 \
+  --out runs/sun_fast_spectrum.npz
 ```
 
-This writes `runs/sun/payne_zero_structured_atmosphere.npz`. Synthesize a spectrum from that product:
+Supplying independent CNO coordinates selects the eight-label initializer:
 
 ```bash
-python -m payne_zero_synthesis.cli \
-  runs/sun/payne_zero_structured_atmosphere.npz \
-  --out runs/sun/spectrum.npz \
-  --wl-start-nm 400 --wl-end-nm 900 --r-grid 20000
+payne-zero-synthesis \
+  --effective-temperature 4600 --log-surface-gravity 2.2 \
+  --metallicity -0.4 --alpha-enhancement 0.2 \
+  --c-over-m -0.25 --n-over-m 0.35 --o-over-m 0.15 \
+  --wl-start-nm 1500 --wl-end-nm 1700 --r-grid 300000 \
+  --out runs/cno_giant_fast_spectrum.npz
 ```
 
-The synthesis device defaults to CUDA, then Metal, then CPU. `--r-grid` is the sampling density of the intrinsic model grid, not the resolving power of an instrument.
+The optional direct-abundance initializer accepts each element on the usual `[X/H]` scale. Unspecified elements inherit `[Fe/H]`:
 
-The corresponding Python interface is:
+```bash
+payne-zero-synthesis \
+  --effective-temperature 4600 --log-surface-gravity 2.2 \
+  --initializer direct-abundance \
+  --fe-over-h -0.4 --c-over-h -0.65 --n-over-h -0.05 --mg-over-h -0.15 \
+  --wl-start-nm 1500 --wl-end-nm 1700 --r-grid 300000 \
+  --out runs/direct_abundance_fast_spectrum.npz
+```
+
+CUDA is selected first, then Apple Metal, then CPU. `--r-grid` controls adjacent samples in the intrinsic logarithmic wavelength grid; it is not the resolving power of an instrument.
+
+The same three cases use one Python function:
 
 ```python
-from payne_zero_atmosphere import solve_structured_atmosphere
-from payne_zero_synthesis import synthesize
+from payne_zero_synthesis import synthesize_from_labels
 
-atmosphere_path = solve_structured_atmosphere(
-    effective_temperature=4800,
-    log_surface_gravity=2.5,
-    metallicity=-0.5,
-    alpha_enhancement=0.3,
-    c_over_m=0.1,
-    n_over_m=0.2,
-    o_over_m=0.1,
-    out_dir="runs/giant",
+five_label = synthesize_from_labels(
+    effective_temperature=5777,
+    log_surface_gravity=4.44,
+    metallicity=0.0,
+    alpha_enhancement=0.0,
+    microturbulence_km_s=1.0,
+    wavelength_start_nm=500,
+    wavelength_end_nm=510,
+    r_grid=20_000,
+    device="auto",
 )
 
-spectrum = synthesize(
-    atmosphere_path,
+eight_label = synthesize_from_labels(
+    effective_temperature=4600,
+    log_surface_gravity=2.2,
+    metallicity=-0.4,
+    alpha_enhancement=0.2,
+    c_over_m=-0.25,
+    n_over_m=0.35,
+    o_over_m=0.15,
     wavelength_start_nm=1500,
     wavelength_end_nm=1700,
-    resolution=300000,
+    r_grid=300_000,
     device="auto",
-    dtype="auto",
+)
+
+direct = synthesize_from_labels(
+    effective_temperature=4600,
+    log_surface_gravity=2.2,
+    fe_over_h=-0.4,
+    x_over_h={"C": -0.65, "N": -0.05, "Mg": -0.15},
+    initializer_family="direct_abundance",
+    wavelength_start_nm=1500,
+    wavelength_end_nm=1700,
+    r_grid=300_000,
+    device="auto",
 )
 ```
 
-Supplying the CNO coordinates in this example selects the eight-label initializer. The atmosphere README gives complete command-line and Python examples for the 81-element initializer.
+These fast spectra use initialized atmospheres and report `atmosphere_converged=False`. They are appropriate for repeated local searches and for deciding where expensive physical checks matter.
+
+## Converge the atmosphere
+
+For a final atmosphere at the requested mixture, run the physical solver and synthesize its structured product:
+
+```bash
+payne-zero-atmosphere \
+  --effective-temperature 4600 --log-surface-gravity 2.2 \
+  --metallicity -0.4 --alpha-enhancement 0.2 \
+  --c-over-m -0.25 --n-over-m 0.35 --o-over-m 0.15 \
+  --out runs/cno_giant
+
+payne-zero-synthesis \
+  runs/cno_giant/payne_zero_structured_atmosphere.npz \
+  --wl-start-nm 1500 --wl-end-nm 1700 --r-grid 300000 \
+  --out runs/cno_giant/converged_spectrum.npz
+```
+
+The first command performs the iterative physical calculation. The second also illustrates the archive-based synthesis interface for a Payne Zero atmosphere or another solver that writes the documented structured schema. The [tutorial](payne_zero_tutorial.ipynb) compares initialized and converged spectra and uses the same forward model in a fit.
 
 ## Performance
 
@@ -139,13 +193,13 @@ Atmosphere kernels and prepared synthesis windows default to `.cache/payne-zero/
 
 ## Fitting and line calibration
 
-[`fitter/`](fitter/README.md) fits normalized spectra with inverse-variance weights, bounds, optional Jacobians, profiled linear continua, trust regions, and complete parameter and spectrum traces. A separate callback can replace the initialized atmosphere with a converged physical atmosphere and refine the candidate when needed. Instrument-specific operations remain in adapters such as `fitter/apogee/`.
+[`fitter/`](fitter/README.md) fits normalized spectra with inverse-variance weights, bounds, optional Jacobians, profiled linear continua, trust regions, and complete parameter and spectrum traces. `ObservedSpectrumOperator` maps a native Payne Zero spectrum to any increasing observed wavelength array with velocity, broadening, a constant-resolution or sampled LSF, and resampling. A custom wavelength-dependent response implements the same spectral-operator protocol; [`fitter/apogee/`](fitter/apogee/README.md) is the included example. A separate callback can replace the initialized atmosphere with a converged physical atmosphere and refine the candidate when needed.
 
-[`linelist_calibration/`](linelist_calibration/README.md) optimizes continuous atomic parameters through a user-supplied differentiable synthesis callback. It supports multiple spectra and bounded joint optimization. The unchanged Kurucz line catalog remains the default; optional Sun–Arcturus overlays are provided separately with their provenance.
+[`linelist_calibration/`](linelist_calibration/README.md) optimizes oscillator strengths and damping parameters through differentiable physical synthesis. Its runnable example reads a real solar FTS excerpt, resolves the requested transition in the active catalog, fits it, and compares the baseline and calibrated profiles. The same interface accepts another standard star, observed wavelength grid, broadening kernel, or joint collection of stars. The unchanged source catalog remains the default; optional Sun–Arcturus correction overlays are provided separately.
 
 ## Products and conventions
 
-`payne_zero_structured_atmosphere.npz` is the NumPy archive exchanged between the two physical stages. Its machine-readable schema is [`payne_zero_synthesis/atmosphere_schema.json`](payne_zero_synthesis/atmosphere_schema.json). The spectrum product contains wavelength, total and continuum surface `F_lambda` per nanometer, normalized flux, and runtime metadata.
+`payne_zero_structured_atmosphere.npz` is the NumPy archive exchanged between the two physical stages. Its machine-readable schema is [`payne_zero_synthesis/atmosphere_schema.json`](payne_zero_synthesis/atmosphere_schema.json). An initialized atmosphere saved for reuse carries a typed `atmosphere_converged=False` marker and provenance extension so it remains distinguishable from a converged physical product. The spectrum product contains wavelength, total and continuum surface `F_lambda` per nanometer, normalized flux, and runtime metadata.
 
 The reference solar mixture is the photospheric composition of Asplund, Grevesse, Sauval, and Scott (2009), commonly abbreviated AGSS09. `[M/H]` changes all metals, `[alpha/M]` adds a common offset to O, Ne, Mg, Si, S, Ca, and Ti, and explicit carbon, nitrogen, and oxygen values replace the corresponding offsets in the eight-label mode. Detailed abundance and file-format conventions are in the atmosphere and synthesis READMEs.
 

@@ -1,57 +1,146 @@
 # Payne Zero Synthesis
 
-`payne_zero_synthesis` turns a solved model atmosphere into an emergent spectrum. The public input is the structured-atmosphere NumPy `.npz` archive produced by `payne_zero_atmosphere`; text atmosphere decks are not a synthesis input.
+`payne_zero_synthesis` calculates an emergent spectrum either directly from stellar labels or from an existing structured atmosphere. The label interface uses a released atmosphere initializer and population bridge in memory. The archive interface accepts the structured NumPy `.npz` product written by `payne_zero_atmosphere`; historical text atmosphere decks are not synthesis inputs.
 
 The implementation uses PyTorch and selects NVIDIA CUDA, then Apple Metal, then a central processing unit (CPU) when no device is specified. CUDA and Metal accelerate broad wavelength windows, while CPU execution remains available for deterministic verification or systems without a suitable graphics processor. If the numerical data type is also omitted, the Python interface uses 32-bit floating point on Metal and 64-bit floating point on CUDA or CPU.
 
 ## Command-line interface
 
+Five-label synthesis is the default:
+
 ```bash
-python -m payne_zero_synthesis.cli atmosphere.npz \
-  --out spectrum.npz \
-  --wl-start-nm 400 --wl-end-nm 900 \
-  --r-grid 20000
+payne-zero-synthesis \
+  --effective-temperature 5777 --log-surface-gravity 4.44 \
+  --metallicity 0.0 --alpha-enhancement 0.0 \
+  --microturbulence-km-s 1.0 \
+  --wl-start-nm 500 --wl-end-nm 510 --r-grid 20000 \
+  --out sun_spectrum.npz
+```
+
+Add `--c-over-m`, `--n-over-m`, and `--o-over-m` for the eight-label CNO initializer:
+
+```bash
+payne-zero-synthesis \
+  --effective-temperature 4600 --log-surface-gravity 2.2 \
+  --metallicity -0.4 --alpha-enhancement 0.2 \
+  --c-over-m -0.25 --n-over-m 0.35 --o-over-m 0.15 \
+  --wl-start-nm 1500 --wl-end-nm 1700 --r-grid 300000 \
+  --out cno_giant_spectrum.npz
+```
+
+To control individual abundances, install the optional direct-abundance asset and give an iron baseline plus any `[X/H]` values:
+
+```bash
+payne-zero-synthesis \
+  --effective-temperature 4600 --log-surface-gravity 2.2 \
+  --initializer direct-abundance \
+  --fe-over-h -0.4 --c-over-h -0.65 --n-over-h -0.05 --mg-over-h -0.15 \
+  --wl-start-nm 1500 --wl-end-nm 1700 --r-grid 300000 \
+  --out direct_abundance_spectrum.npz
+```
+
+Every element represented by the direct initializer has an `--x-over-h` flag such as `--mg-over-h`. The repeatable generic spelling `--abundance Mg:-0.15` and a JSON `--abundance-file` are also accepted. Unspecified elements inherit `[Fe/H]`.
+
+Pass a structured atmosphere as the positional argument when the atmosphere has already been solved:
+
+```bash
+payne-zero-synthesis atmosphere.npz \
+  --wl-start-nm 400 --wl-end-nm 900 --r-grid 20000 \
+  --out spectrum.npz
 ```
 
 | argument | default | meaning |
 | --- | --- | --- |
-| `atmosphere` | required | structured-atmosphere NumPy archive |
-| `--out` | required unless `--validate-only` | output spectrum NumPy archive |
-| `--validate-only` | off | validate the atmosphere and exit |
+| `atmosphere` | omitted | optional structured-atmosphere archive; omit for label synthesis |
+| `--effective-temperature`, `--log-surface-gravity` | required in label mode | basic stellar parameters |
+| `--metallicity`, `--alpha-enhancement` | `0`, `0` | `[M/H]` and `[alpha/M]` in five- or eight-label mode |
+| `--c-over-m`, `--n-over-m`, `--o-over-m` | omitted | independent CNO coordinates; select eight-label mode |
+| `--initializer direct-abundance`, `--x-over-h` | omitted | individual `[X/H]` mode |
+| `--save-initialized-atmosphere` | omitted | retain the predicted population-bridged atmosphere with an explicit unconverged-product marker |
 | `--wl-start-nm`, `--wl-end-nm` | `400`, `900` | wavelength bounds [nm] |
-| `--r-grid`, `--resolution` | `20000` | logarithmic wavelength-grid density, `R_grid` |
-| `--device` | best available | NVIDIA CUDA (`cuda`), Apple Metal Performance Shaders (`mps`), or CPU (`cpu`) |
+| `--r-grid`, `--resolution` | `20000` | logarithmic intrinsic-grid density, `R_grid` |
+| `--device` | best available | NVIDIA CUDA, Apple Metal, or CPU |
 | `--dtype` | device-aware | `float32` on Metal; `float64` on CUDA/CPU |
 | `--no-molecular-lines` | off | omit molecular line opacity |
+| `--validate-only` | off | validate a positional atmosphere archive and exit |
 
-The spectrum NumPy archive contains:
+Every spectrum NumPy archive contains:
 
 - `wavelength_nm`;
 - `flux_total`, the total surface `F_lambda` spectral flux density per nanometer;
 - `flux_continuum`, the continuum surface `F_lambda` spectral flux density per nanometer;
 - `normalized_flux = flux_total / flux_continuum`;
-- `seconds`, the synthesis wall time.
+- `seconds`, the complete wall time represented by that product.
+
+For archive-based `synthesize(...)`, `seconds` is the synthesis wall time. Label-driven products also contain `initializer_family`, `atmosphere_converged`, `atmosphere_closure_required`, `initializer_seconds`, `population_bridge_seconds`, `synthesis_seconds`, and `metadata_json`; their `seconds` value is the sum of initialization, population bridging, and synthesis. Use `synthesis_seconds` when comparing only the spectral calculation.
 
 Transfer is evaluated internally as Eddington `H_nu`. The public interface applies `F = 4 pi H` and the exact frequency-to-wavelength Jacobian needed to return both surface-flux arrays per nanometer.
 
 ## Python interface
+
+Use `synthesize_from_labels` for the common path:
+
+```python
+from payne_zero_synthesis import synthesize_from_labels
+
+five_label = synthesize_from_labels(
+    effective_temperature=4750,
+    log_surface_gravity=2.5,
+    metallicity=-0.3,
+    alpha_enhancement=0.15,
+    microturbulence_km_s=1.5,
+    wavelength_start_nm=500,
+    wavelength_end_nm=510,
+    r_grid=20_000,
+    device="auto",
+    dtype="auto",
+)
+
+eight_label = synthesize_from_labels(
+    effective_temperature=4750,
+    log_surface_gravity=2.5,
+    metallicity=-0.3,
+    alpha_enhancement=0.15,
+    c_over_m=-0.2,
+    n_over_m=0.3,
+    o_over_m=0.1,
+    wavelength_start_nm=500,
+    wavelength_end_nm=510,
+    r_grid=20_000,
+    device="auto",
+)
+
+direct = synthesize_from_labels(
+    effective_temperature=4750,
+    log_surface_gravity=2.5,
+    fe_over_h=-0.3,
+    x_over_h={"C": -0.5, "N": 0.0, "Mg": -0.1},
+    initializer_family="direct_abundance",
+    wavelength_start_nm=500,
+    wavelength_end_nm=510,
+    r_grid=20_000,
+    device="auto",
+)
+```
+
+The result contains the spectrum, initializer family, input labels, stage timings, and the in-memory initialized atmosphere. `atmosphere_converged` is false because no iterative physical atmosphere solve occurs in this fast path. Pass `result.initialized_atmosphere` to `synthesize` to reuse the population state over another wavelength interval. Saving it with `result.initialized_atmosphere.save_npz(...)` preserves typed `atmosphere_converged=False`, initializer-family, and provenance metadata alongside the physical arrays. The ordinary atmosphere loader ignores this extension and remains compatible with the saved archive. `load_atmosphere_product_metadata(...)` reads the marker explicitly when a workflow needs to distinguish an initializer prediction from a converged physical atmosphere.
+
+Use `synthesize` when a converged or externally supplied atmosphere already exists:
 
 ```python
 from payne_zero_synthesis import synthesize
 
 spectrum = synthesize(
     "payne_zero_structured_atmosphere.npz",
-    wavelength_start_nm=400.0,
-    wavelength_end_nm=900.0,
-    resolution=20_000.0,
-    molecular_lines=True,
+    wavelength_start_nm=400,
+    wavelength_end_nm=900,
+    resolution=20_000,
     device="auto",
     dtype="auto",
 )
-spectrum.save_npz("sun_spectrum.npz")
 ```
 
-The historical Python argument `resolution` denotes `R_grid = lambda / Delta lambda` for adjacent model samples. Instrumental resolving power is applied separately by an instrument model such as the public Apache Point Observatory Galactic Evolution Experiment (APOGEE) line-spread-function operator.
+In `synthesize_from_labels`, the older Python keyword `resolution` is an alias for `r_grid = lambda / Delta lambda` between adjacent intrinsic model samples. The archive-based `synthesize` function retains `resolution` as its keyword for the same intrinsic sampling density. Instrumental resolving power is applied separately through a spectral operator. [`fitter.ObservedSpectrumOperator`](../fitter/README.md) supplies constant-resolution or sampled-kernel projection to arbitrary observed pixels, and the APOGEE adapter supplies a measured wavelength-dependent LSF.
 
 `build_structured_atmosphere` and `save_structured_atmosphere` are also public for callers that already hold physical atmosphere columns in memory.
 

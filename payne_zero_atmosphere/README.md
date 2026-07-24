@@ -60,7 +60,7 @@ The five- and eight-label initializers are installed by default. An out-of-suppo
 
 ### Direct-abundance initializer
 
-The optional direct-abundance initializer exposes every supported element as an individual coordinate, such as `fe_over_h`, `mg_over_h`, or `c_over_h`. It is selected explicitly, and its decoded structure is always followed by the physical solve before synthesis.
+The optional direct-abundance initializer exposes every supported element as an individual coordinate, such as `fe_over_h`, `mg_over_h`, or `c_over_h`. When used through this atmosphere interface, its decoded structure is followed by the physical solve before synthesis. The synthesis interface can use the same initialized structure for a fast optimizer model and marks that product as unconverged.
 
 From the repository root, install its optional checkpoint with
 

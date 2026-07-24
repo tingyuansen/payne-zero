@@ -46,4 +46,8 @@ include = [
 [tool.setuptools.package-data]
 payne_zero_synthesis = ["atmosphere_schema.json"]
 "fitter.apogee" = ["data/*.npz"]
-linelist_calibration = ["data/*.npz", "data/*.json"]
+linelist_calibration = [
+  "data/*.npz",
+  "data/*.json",
+  "examples/data/*.npz",
+]

@@ -4,7 +4,7 @@ This package is the reusable boundary of the Apache Point Observatory Galactic E
 
 `fit_apogee_spectrum` and `payne-zero-fit-apogee` run the fast search with the learned atmosphere initializer followed by physical spectral synthesis. They do not automatically solve the final atmosphere to convergence. A complete physical-atmosphere fit must add the converged-model callback through `fitter.refine_with_physical_atmosphere`; that correction remains explicit so the output is not mistaken for a converged atmosphere result.
 
-The installed Python array interface and command expose exactly two stellar-label families: the five standard labels and the eight-label family with independent carbon, nitrogen, and oxygen coordinates, selected with `fit_cno8=True`. They do not expose the optional released direct-[X/H] initializer, whose validation is more limited and which requires a converged physical solve through its explicit atmosphere interface.
+The installed Python array interface and command expose the five standard labels and the eight-label family with independent carbon, nitrogen, and oxygen coordinates, selected with `fit_cno8=True`. Use the generic fitter interface for a direct-[X/H] model or another abundance parameterization.
 
 The Python array example below fits the public DR14 spectrum bundled with the tutorial. It uses a reduced synthesis-grid density so the example remains practical on a central processing unit (CPU) or laptop graphics processor. Run it from the repository root so the relative data and calibration paths resolve.
 
@@ -53,18 +53,9 @@ Set `fit_cno8=True` together with finite `c_over_m`, `n_over_m`, and `o_over_m` 
 
 ## Optional atomic calibration
 
-`atomic_calibration_path=` is optional and leaves the source catalog unchanged. New public products use correction-only schema 4 with:
+`atomic_calibration_path=` is optional and leaves the source catalog unchanged. Public schema-4 overlays contain additive dex corrections to oscillator strength and the three damping families, together with the transition grouping and source-catalog identity needed to apply them safely. The fitter validates that the overlay belongs to the active catalog and applies it to a private copy before synthesis; a source or transition mismatch fails without changing the catalog.
 
-- scalar integer `schema=4` and scalar string `calibration_name`;
-- unique opaque SHA-256 group identifiers in `key`, plus finite group vectors `delta_loggf_dex`, `delta_log_vdw_dex`, `delta_log_radiative_dex`, and `delta_log_stark_dex`;
-- integer `component_group_index`, which maps each component to one group;
-- `component_row_signature_sha256` and integer `component_occurrence_ordinal`, which identify exact rows and duplicate occurrences without publishing the source values;
-- coarse wavelength, atomic-number, line-type, and ion-stage scope vectors; and
-- a required scalar `source_catalog_sha256`. Optional parameter, evidence, and grouping digests bind the retained provenance.
-
-Before applying schema 4, the fitter resolves the exact user-local source catalog through the synthesis data path and verifies its complete file digest. It then recomputes each opaque row identity and projects the corrections onto a private catalog copy. A full-window overlay may contain rows not retained by an active synthesis window, but every in-scope active row must match. A source-hash mismatch, missing row, incomplete duplicate group, or incomplete active-row coverage fails before synthesis.
-
-`fitter.apogee.validate_atomic_calibration(path)` checks the standalone format without constructing a forward model. Schemas 2 and 3 and unversioned products remain readable for legacy compatibility, including their cleartext identities and optional absolute values, but schema 4 is the public format. The generic `linelist_calibration.write_substituted_catalog` helper writes a complete calibrated catalog to a new path and requires the exact source path for schema 4.
+`fitter.apogee.validate_atomic_calibration(path)` checks an overlay without constructing a forward model. The line-calibration README documents the format, export from a fitted standard star, and optional writing of a complete substituted local catalog.
 
 The equivalent command is:
 

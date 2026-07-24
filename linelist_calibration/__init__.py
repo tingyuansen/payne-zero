@@ -18,6 +18,12 @@ from .optimize import (
     CalibrationResult,
     calibrate_line_parameters,
 )
+from .physical import (
+    AtomicTransition,
+    ResolvedAtomicTransition,
+    SynthesisLineCalibrationModel,
+    gaussian_velocity_kernel,
+)
 
 __all__ = [
     "ATOMIC_CALIBRATION_ABSOLUTE_FIELDS",
@@ -26,11 +32,15 @@ __all__ = [
     "CalibrationConfiguration",
     "CalibrationData",
     "CalibrationResult",
+    "AtomicTransition",
+    "ResolvedAtomicTransition",
+    "SynthesisLineCalibrationModel",
     "apply_atomic_calibration",
     "bundled_atomic_calibration",
     "bundled_atomic_calibrations",
     "canonical_atomic_row_identities",
     "calibrate_line_parameters",
+    "gaussian_velocity_kernel",
     "load_atomic_calibration",
     "validate_atomic_calibration",
     "write_substituted_catalog",

@@ -1497,8 +1497,16 @@ class SynthesisPipeline:
                 self.wavelength_nm,
                 spectral_operator,
             )
-            spectral_operator_seconds = float(spectral_operator.last_seconds)
-            spectral_operator_name = str(spectral_operator.name)
+            spectral_operator_seconds = float(
+                getattr(spectral_operator, "last_seconds", 0.0)
+            )
+            spectral_operator_name = str(
+                getattr(
+                    spectral_operator,
+                    "name",
+                    spectral_operator.__class__.__name__,
+                )
+            )
 
         def tensor_to_host_float64(tensor):
             return tensor.detach().to("cpu").numpy().astype(np.float64)
