@@ -12,4 +12,4 @@ These packed NumPy tables are invariant inputs to `payne_zero_synthesis`. They a
 | `partition_saha_inputs.npz` | partition functions and Saha inputs |
 | `transfer_tables.npz` | emergent-flux quadrature operators |
 
-The loader modules validate required keys, shapes, and dtypes. Physical array names are the public schema; inspect an NPZ with `numpy.load(path).files` when working on a table-specific extension.
+The loader modules validate required keys, shapes, and numerical data types. Physical array names are the public schema; inspect a NumPy `.npz` archive with `numpy.load(path).files` when working on a table-specific extension.

@@ -1,10 +1,10 @@
 # Payne Zero Synthesis
 
-`payne_zero_synthesis` turns a solved model atmosphere into an emergent spectrum. The public input is the structured-atmosphere NPZ produced by `payne_zero_atmosphere`; text atmosphere decks are not a synthesis input.
+`payne_zero_synthesis` turns a solved model atmosphere into an emergent spectrum. The public input is the structured-atmosphere NumPy `.npz` archive produced by `payne_zero_atmosphere`; text atmosphere decks are not a synthesis input.
 
-The implementation uses Torch and selects CUDA, then Metal, then CPU when no device is specified. CUDA and Metal accelerate broad wavelength windows, while CPU is a fully supported execution path and remains useful for deterministic verification or systems without an accelerator. If dtype is also omitted, the API uses fp32 on Metal and fp64 on CUDA or CPU.
+The implementation uses PyTorch and selects NVIDIA CUDA, then Apple Metal, then a central processing unit (CPU) when no device is specified. CUDA and Metal accelerate broad wavelength windows, while CPU execution remains available for deterministic verification or systems without a suitable graphics processor. If the numerical data type is also omitted, the Python interface uses 32-bit floating point on Metal and 64-bit floating point on CUDA or CPU.
 
-## Command Line
+## Command-line interface
 
 ```bash
 python -m payne_zero_synthesis.cli atmosphere.npz \
@@ -15,16 +15,16 @@ python -m payne_zero_synthesis.cli atmosphere.npz \
 
 | argument | default | meaning |
 | --- | --- | --- |
-| `atmosphere` | required | structured-atmosphere NPZ |
-| `--out` | required unless `--validate-only` | output spectrum NPZ |
+| `atmosphere` | required | structured-atmosphere NumPy archive |
+| `--out` | required unless `--validate-only` | output spectrum NumPy archive |
 | `--validate-only` | off | validate the atmosphere and exit |
 | `--wl-start-nm`, `--wl-end-nm` | `400`, `900` | wavelength bounds [nm] |
 | `--r-grid`, `--resolution` | `20000` | logarithmic wavelength-grid density, `R_grid` |
-| `--device` | best available | `cuda`, `mps`, or `cpu` |
+| `--device` | best available | NVIDIA CUDA (`cuda`), Apple Metal Performance Shaders (`mps`), or CPU (`cpu`) |
 | `--dtype` | device-aware | `float32` on Metal; `float64` on CUDA/CPU |
 | `--no-molecular-lines` | off | omit molecular line opacity |
 
-The spectrum NPZ contains:
+The spectrum NumPy archive contains:
 
 - `wavelength_nm`;
 - `flux_total`, the total surface `F_lambda` spectral flux density per nanometer;
@@ -32,9 +32,9 @@ The spectrum NPZ contains:
 - `normalized_flux = flux_total / flux_continuum`;
 - `seconds`, the synthesis wall time.
 
-Transfer is evaluated internally as Eddington `H_nu`. The public API applies `F = 4 pi H` and the exact frequency-to-wavelength Jacobian needed to return both surface-flux arrays per nanometer.
+Transfer is evaluated internally as Eddington `H_nu`. The public interface applies `F = 4 pi H` and the exact frequency-to-wavelength Jacobian needed to return both surface-flux arrays per nanometer.
 
-## Python API
+## Python interface
 
 ```python
 from payne_zero_synthesis import synthesize
@@ -51,7 +51,7 @@ spectrum = synthesize(
 spectrum.save_npz("sun_spectrum.npz")
 ```
 
-The historical API name `resolution` denotes `R_grid = lambda / Delta lambda` for adjacent model samples. Instrumental resolving power is applied separately by an instrument model such as the public APOGEE LSF operator.
+The historical Python argument `resolution` denotes `R_grid = lambda / Delta lambda` for adjacent model samples. Instrumental resolving power is applied separately by an instrument model such as the public Apache Point Observatory Galactic Evolution Experiment (APOGEE) line-spread-function operator.
 
 `build_structured_atmosphere` and `save_structured_atmosphere` are also public for callers that already hold physical atmosphere columns in memory.
 
@@ -66,7 +66,7 @@ The former controls charge-weighted free-free opacity. The latter controls bound
 
 ## Performance
 
-Synthesis is parallel over wavelength. At `R_grid = 300,000`, a warm 300--1000 nm spectrum takes about 14--21 s on an H100 across the retained stellar controls. A solar 1500--1700 nm spectrum takes 1.4 s on H100 and 3.1 s on A100 or V100. The public interface evaluates one atmosphere per call.
+Synthesis is parallel over wavelength. At `R_grid = 300,000`, a warm 300–1000 nm spectrum takes about 14–21 s on an H100 across the retained stellar controls. A solar 1500–1700 nm spectrum takes 1.4 s on H100 and 3.1 s on A100 or V100. The public interface evaluates one atmosphere per call.
 
 Window-invariant line and transfer data are cached in process. Derived caches may be deleted without changing the physics.
 
@@ -87,14 +87,14 @@ Source checkouts store prepared windows under `.cache/payne-zero/synthesis/`. Th
 | `PAYNE_ZERO_SYNTHESIS_DISABLE_INVARIANT_CACHE=1` | disable the in-process invariant cache |
 | `PAYNE_ZERO_SYNTHESIS_CACHE_DIR` | relocate derived synthesis caches |
 
-Device and dtype are API arguments, not environment settings.
+Device and numerical data type are function arguments, not environment settings.
 
 ## Modules
 
 | module | responsibility |
 | --- | --- |
 | `api.py` | public `Spectrum`, synthesis, build, and save functions |
-| `atmosphere.py` | canonical NPZ loading, validation, and compatibility upgrade |
+| `atmosphere.py` | canonical NumPy-archive loading, validation, and compatibility upgrade |
 | `pipeline.py`, `synthesis.py` | synthesis orchestration |
 | `equation_of_state.py` | partition functions, ionization, and population state |
 | `continuum.py` | continuum absorption and scattering |

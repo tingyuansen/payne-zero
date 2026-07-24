@@ -24,7 +24,7 @@ The two molecular-equilibrium files belong to different physical stages and are 
 | `molecules/manifest.json` | explicit molecular compile order |
 | `molecules/molecular_band_lines.npz` | 32 molecular band systems stored as per-band array groups |
 | `molecules/titanium_oxide_lines.npy` | Schwenke TiO packed transitions |
-| `molecules/water_lines.npy` | Partridge--Schwenke H2O packed transitions |
+| `molecules/water_lines.npy` | Partridge–Schwenke H2O packed transitions |
 
 The molecular compiler follows `manifest.json`; it does not discover inputs by filename globbing.
 

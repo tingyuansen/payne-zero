@@ -1,7 +1,7 @@
 Payne Zero attribution notice
 =============================
 
-Payne Zero implements the numerical structure and scientific data conventions of the Kurucz ATLAS12 and SYNTHE programs. Please cite the relevant Kurucz programs and line-data publications when using this work.
+Payne Zero is a modern reimplementation of a one-dimensional local thermodynamic equilibrium (LTE) stellar-atmosphere and spectrum calculation. Its scientific lineage includes the Kurucz atmosphere, synthesis, and line-data work, whose numerical conventions remain important for comparison and reproducibility. Payne Zero is not a wrapper around the historical programs. Please cite the relevant Kurucz publications when those methods or data contribute to an analysis.
 
 The immediate implementation and validation lineage is pyKurucz:
 

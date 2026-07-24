@@ -1,6 +1,6 @@
 # Normalized-spectrum fitting
 
-`fitter.normalized` is an instrument-agnostic weighted fitter. It operates on the observed wavelength grid, supports arbitrary nonlinear parameters, profiles a linear multiplicative continuum at every trial, and stores every accepted parameter vector, spectrum, and objective together with the runtime of every model or Jacobian callback. The user supplies the forward callback, so synthesis, LSF convolution, Doppler shifting, and resampling remain explicit rather than being silently assumed.
+`fitter.normalized` is an instrument-agnostic weighted fitter. It operates on the observed wavelength grid, supports arbitrary nonlinear parameters, profiles a linear multiplicative continuum at every trial, and stores every accepted parameter vector, spectrum, and objective together with the runtime of every model or Jacobian callback. The user supplies the forward callback, so synthesis, line-spread-function (LSF) convolution, Doppler shifting, and resampling remain explicit rather than being silently assumed.
 
 From a checkout, run `./install.sh` at the repository root before using the interface.
 
@@ -97,8 +97,8 @@ physical_result = refine_with_physical_atmosphere(
         maximum_objective_degradation=0.1,
         minimum_predicted_objective_improvement=1.0e-3,
         maximum_physical_evaluations=4,
-        correction_derivative_steps=np.array([25.0, 0.03, 0.03]),
-        correction_trust_half_width=np.array([150.0, 0.15, 0.15]),
+        correction_derivative_steps=np.array([0.01, 0.01]),
+        correction_trust_half_width=np.array([0.2, 0.2]),
     ),
     continuum_basis=continuum_basis,
 )
@@ -111,6 +111,6 @@ The runnable example above reuses the analytic model for both callbacks. In a ph
 
 ## APOGEE interface
 
-[`apogee/`](apogee/) packages a representative DR14 all-slit mean LSF, residual-RV and broadening operators, chip-wise continuum profiling, atomic-calibration projection, initializer-atmosphere synthesis forward model, and the established fast optimizer. It accepts prepared normalized apStar arrays without downloading survey data or assuming a survey catalog. The convenience entry point does not automatically run the converged-atmosphere refinement described above. See its README for the array API, LSF scope, and `payne-zero-fit-apogee` command.
+[`apogee/`](apogee/) packages a representative Apache Point Observatory Galactic Evolution Experiment (APOGEE) Data Release 14 all-slit mean line-spread function, residual radial-velocity and broadening operators, chip-wise continuum profiling, atomic-calibration projection, an initialized-atmosphere synthesis model, and the established fast optimizer. It accepts prepared normalized apStar arrays without downloading survey data or assuming a survey catalog. The convenience entry point does not automatically run the converged-atmosphere refinement described above. See its README for the Python array interface, instrument-kernel scope, and `payne-zero-fit-apogee` command.
 
-This installed APOGEE interface exposes exactly two stellar-label families: the five standard labels and the eight-label CNO family. The optional direct-[X/H] initializer is not exposed by `fit_apogee_spectrum` or `payne-zero-fit-apogee`.
+This installed APOGEE interface exposes exactly two stellar-label families: the five standard labels and the eight-label family with independent carbon, nitrogen, and oxygen coordinates. The optional direct-[X/H] initializer is not exposed by `fit_apogee_spectrum` or `payne-zero-fit-apogee`.

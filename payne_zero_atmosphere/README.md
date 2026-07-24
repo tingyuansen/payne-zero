@@ -1,10 +1,10 @@
 # Payne Zero Atmosphere
 
-`payne_zero_atmosphere` predicts a complete warm-start structure and iterates it to a converged one-dimensional LTE model atmosphere. The solver is CPU-only and uses compiled Numba kernels. Independent stars are the natural unit of parallel work.
+`payne_zero_atmosphere` predicts a complete starting structure and iterates it to a converged one-dimensional local thermodynamic equilibrium (LTE) model atmosphere. The solver runs on multicore central processing units (CPUs) with compiled Numba kernels. Independent stars are the natural unit of parallel work.
 
-The public product is a structured-atmosphere NPZ consumed directly by `payne_zero_synthesis`. Text atmosphere decks are retained only as a fixed-column compatibility boundary for the independent pykurucz reference and for the in-memory quantization used by the certified solver path.
+The public product is a structured-atmosphere NumPy `.npz` archive consumed directly by `payne_zero_synthesis`. Text atmosphere decks are retained only as a fixed-column compatibility boundary for the independent pykurucz reference and for the in-memory quantization used by the certified solver path.
 
-## Command Line
+## Command-line interface
 
 ```bash
 python -m payne_zero_atmosphere \
@@ -32,12 +32,12 @@ python -m payne_zero_atmosphere \
 | `--log-surface-gravity` | required | log10 surface gravity [cgs] |
 | `--metallicity` | `0` | [M/H] |
 | `--alpha-enhancement` | `0` | [alpha/M] |
-| `--microturbulence-km-s` | `2` | microturbulent velocity [km s^-1] |
+| `--microturbulence-km-s` | `2` | microturbulent velocity [km s⁻¹] |
 | `--c-over-m` | unset | [C/M] |
 | `--n-over-m` | unset | [N/M] |
 | `--o-over-m` | unset | [O/M] |
 | `--abundance N:+x` | unset | repeatable exact-solver `[X/H]` override by atomic number or symbol, for example `--abundance Fe:+0.3` |
-| `--initializer` | `auto` | `auto` selects 5D or 8D; `direct-abundance` selects the 81-element initializer |
+| `--initializer` | `auto` | `auto` selects the five-label or eight-label initializer; `direct-abundance` selects the 81-element initializer |
 | `--abundance-file` | unset | JSON mapping of element symbols or atomic numbers to `[X/H]`; unspecified elements inherit Fe |
 | `--iterations-per-trial` | `15` | exact iterations allowed per initializer |
 | `--max-trials` | `2` | deterministic nearby initializer trials |
@@ -48,13 +48,13 @@ The production solve enables molecules, convection, and the full source-line cat
 
 ## Initializers
 
-Every initializer predicts the same six atmosphere fields. It changes the starting point, not the requested physical model or the convergence test.
+Every initializer predicts the same six atmosphere fields. It changes the starting point, not the requested physical model or the convergence test. CNO denotes carbon, nitrogen, and oxygen.
 
 | mode | public coordinates | selection |
 | --- | --- | --- |
 | five-label | `Teff`, `logg`, `[M/H]`, `[alpha/M]`, microturbulence | default |
-| eight-label | five-label set plus `[C/M]`, `[N/M]`, `[O/M]` | automatic when any CNO coordinate is supplied |
-| direct abundance | `Teff`, `logg`, microturbulence, `[Fe/H]`, and any individual `[X/H]` values | explicit CLI or Python selection |
+| eight-label | five-label set plus `[C/M]`, `[N/M]`, `[O/M]` | automatic when any carbon, nitrogen, or oxygen coordinate is supplied |
+| direct abundance | `Teff`, `logg`, microturbulence, `[Fe/H]`, and any individual `[X/H]` values | explicit command-line or Python selection |
 
 The five- and eight-label initializers are installed by default. An out-of-support query warns and clips only the initializer input to its support boundary. The physical solve still uses the exact requested labels and writes the structured product only after convergence.
 
@@ -62,17 +62,17 @@ The five- and eight-label initializers are installed by default. An out-of-suppo
 
 The optional direct-abundance initializer exposes every supported element as an individual coordinate, such as `fe_over_h`, `mg_over_h`, or `c_over_h`. It is selected explicitly, and its decoded structure is always followed by the physical solve before synthesis.
 
-Install its optional checkpoint with
+From the repository root, install its optional checkpoint with
 
 ```bash
 PAYNE_ZERO_INCLUDE_DIRECT_ABUNDANCE=1 ./install.sh
 ```
 
-Supply `[Fe/H]` and any elements that differ from it. Unspecified metals inherit `[Fe/H]`, producing the complete mixture used by the atmosphere and synthesis calculations. The support is 4,000--10,500 K, `logg` 0.7--5.3, microturbulence 0.5--4.0 km s^-1, `[Fe/H]` -2.5--0.5, and each `[X/Fe]` -0.5--0.5. The public input remains 81 `[X/H]` values; `[Fe/H]` and `[X/Fe]` are only the network's internal coordinates. Inputs are quantized to the solver's 0.01 dex abundance precision.
+Supply `[Fe/H]` and any elements that differ from it. Unspecified metals inherit `[Fe/H]`, producing the complete mixture used by the atmosphere and synthesis calculations. The support is 4,000–10,500 K, `logg` 0.7–5.3, microturbulence 0.5–4.0 km s⁻¹, `[Fe/H]` −2.5–0.5, and each `[X/Fe]` −0.5–0.5. The public input remains 81 `[X/H]` values; `[Fe/H]` and `[X/Fe]` are only the network's internal coordinates. Inputs are quantized to the solver's 0.01 dex abundance precision.
 
-The 81 available elements are Li--Mo, Ru--Nd, Sm--Bi, Th, and U.
+The 81 available elements are Li–Mo, Ru–Nd, Sm–Bi, Th, and U.
 
-The CLI provides one option per element:
+The command-line interface provides one option per element:
 
 ```bash
 python -m payne_zero_atmosphere \
@@ -90,17 +90,17 @@ The common ordinary-star support is approximately:
 
 | label | range |
 | --- | --- |
-| effective temperature | 4,000-10,500 K |
-| log surface gravity | 0.7-5.3 dex(cgs) |
+| effective temperature | 4,000–10,500 K |
+| log surface gravity | 0.7–5.3 dex (cgs) |
 | metallicity | -2.5 to +0.5 [M/H] |
 | alpha enhancement | -0.1 to +0.5 [alpha/M] |
-| microturbulence | 0.5-4.0 km s^-1 |
+| microturbulence | 0.5–4.0 km s⁻¹ |
 
 The three CNO coordinates cover approximately `-0.5 <= [X/M] <= 0.5`. Exact asset hashes, serialized compatibility keys, and training-corpus provenance are recorded in [`release_manifest.json`](../source_data_files/atmosphere_emulator/release_manifest.json).
 
 ## Abundances
 
-The reference mixture is AGSS09 by number, with helium fixed at `0.078370`. The public abundance coordinates are:
+The reference solar mixture is the photospheric composition by number from Asplund, Grevesse, Sauval, and Scott (2009), commonly abbreviated AGSS09, with helium fixed at `0.078370`. The public abundance coordinates are:
 
 - `[M/H]`: applied to every metal (`Z >= 3`);
 - `[alpha/M]`: applied in addition to O, Ne, Mg, Si, S, Ca, and Ti;
@@ -109,7 +109,7 @@ The reference mixture is AGSS09 by number, with helium fixed at `0.078370`. The 
 
 Hydrogen is renormalized after helium and metals are assigned. The user-facing name `metallicity` always means [M/H], not [Fe/H].
 
-## Python API
+## Python interface
 
 ```python
 from payne_zero_atmosphere import solve_structured_atmosphere
@@ -121,13 +121,13 @@ path = solve_structured_atmosphere(
     metallicity=-0.5,              # [M/H]
     alpha_enhancement=0.3,         # [alpha/M]
     microturbulence_km_s=1.8,
-    c_over_m=0.1,                  # [C/M]; adding C, N, or O selects 8D
+    c_over_m=0.1,                  # [C/M]; adding C, N, or O selects eight-label
     n_over_m=0.2,                  # [N/M]
     o_over_m=0.1,                  # [O/M]
 )
 ```
 
-Omit the three CNO keywords for the 5D initializer. The direct-abundance API uses the same high-level solver:
+Omit the three carbon, nitrogen, and oxygen keywords for the five-label initializer. The direct-abundance Python interface uses the same high-level solver:
 
 ```python
 from payne_zero_atmosphere import solve_structured_atmosphere
@@ -195,18 +195,18 @@ The machine-readable contract is [`payne_zero_synthesis/atmosphere_schema.json`]
 | field | unit | meaning |
 | --- | --- | --- |
 | `temperature` | K | layer temperature |
-| `column_mass` | g cm^-2 | mass above unit surface area |
-| `gas_pressure` | dyne cm^-2 | gas pressure |
-| `electron_density` | cm^-3 | electron number density |
-| `mass_density` | g cm^-3 | mass density |
-| `microturbulence` | cm s^-1 | microturbulent velocity |
-| `ion_stage_populations` | cm^-3 | actual ion-stage number-density cube |
-| `partition_normalized_populations` | cm^-3 per partition function | ion-stage populations divided by partition functions |
+| `column_mass` | g cm⁻² | mass above unit surface area |
+| `gas_pressure` | dyne cm⁻² | gas pressure |
+| `electron_density` | cm⁻³ | electron number density |
+| `mass_density` | g cm⁻³ | mass density |
+| `microturbulence` | cm s⁻¹ | microturbulent velocity |
+| `ion_stage_populations` | cm⁻³ | actual ion-stage number-density cube |
+| `partition_normalized_populations` | cm⁻³ per partition function | ion-stage populations divided by partition functions |
 | `fractional_doppler_widths` | v/c | Doppler-width cube |
-| `hydrogen_neutral_population`, `hydrogen_ionized_population` | cm^-3 | H I and H II number densities |
-| `helium_neutral_population`, `helium_singly_ionized_population` | cm^-3 | He I and He II number densities |
-| `molecular_hydrogen_population` | cm^-3 | H2 number density |
-| element-specific `*_partition_normalized_*` fields | cm^-3 per partition function | dedicated bound-opacity inputs |
+| `hydrogen_neutral_population`, `hydrogen_ionized_population` | cm⁻³ | H I and H II number densities |
+| `helium_neutral_population`, `helium_singly_ionized_population` | cm⁻³ | He I and He II number densities |
+| `molecular_hydrogen_population` | cm⁻³ | H2 number density |
+| element-specific `*_partition_normalized_*` fields | cm⁻³ per partition function | dedicated bound-opacity inputs |
 | `elemental_abundances` | relative number fraction | elements Z=1..99 |
 | `continuum_edge_*` | Hz or nm | continuum sampling edges and intervals |
 

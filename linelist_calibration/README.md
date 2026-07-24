@@ -1,6 +1,6 @@
 # Differentiable line-list calibration
 
-`linelist_calibration.optimize` provides bounded LBFGS optimization for any differentiable physical line-parameter vector. The user supplies a Torch forward callback that returns flux with the same shape as the observed data; the callback can include one or many spectra, normalization, broadening, an instrument response, and any desired mapping from parameters to atomic data.
+`linelist_calibration.optimize` provides bounded limited-memory Broyden-Fletcher-Goldfarb-Shanno (L-BFGS) optimization for any differentiable physical line-parameter vector. The user supplies a PyTorch forward callback that returns flux with the same shape as the observed data; the callback can include one or many spectra, normalization, broadening, an instrument response, and any desired mapping from parameters to atomic data.
 
 From a checkout, run `./install.sh` at the repository root before using the interface.
 
@@ -25,7 +25,7 @@ The optimizer minimizes `sum(weight * (model - observed)**2) / sum(weight)`. Wei
 
 ## Working Sun/Arcturus example
 
-The reusable optimizer and overlay operations are Python APIs. The module command below is a self-contained example CLI, not an atlas- or survey-specific calibration command.
+The reusable optimizer and overlay operations are Python interfaces. The module command below is a self-contained command-line example, not an atlas- or survey-specific calibration command.
 
 The self-contained example jointly fits two synthetic line-strength corrections to analytic Sun and Arcturus profiles:
 
@@ -82,11 +82,11 @@ corrected, metadata = apply_atomic_calibration(
 )
 ```
 
-The retained calibrations have three scientific roles:
+The retained calibrations use Fourier transform spectrometer (FTS) atlases and have three scientific roles:
 
 | Bundle | Intended use |
 |---|---|
-| `sun_arcturus_fts_hband_shared` | Shared Sun--Arcturus correction used by the survey demonstration |
+| `sun_arcturus_fts_hband_shared` | Shared Sun–Arcturus correction used by the survey demonstration |
 | `sun_fts_hband` | Independent solar calibration |
 | `arcturus_fts_hband_joint_epochs` | Independent joint-epoch Arcturus calibration |
 
