@@ -221,7 +221,7 @@ Payne Zero-authored code is released under the [BSD 3-Clause License](LICENSE).
 If Payne Zero contributes to a publication, please cite Ting & Kim, *The Payne Zero Project I: Stellar Spectra from Physical Models in Seconds*. Replace the placeholder arXiv identifier below when the record is available.
 
 ```bibtex
-@article{TingKim2026PayneZero,
+@article{Ting2026PayneZero,
   author = {Ting, Yuan-Sen and Kim, Elliot M.},
   title = {The Payne Zero Project I: Stellar Spectra from Physical Models in Seconds},
   journal = {arXiv e-prints},
