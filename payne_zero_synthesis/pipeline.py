@@ -15,6 +15,7 @@ import hashlib
 import json
 import os
 import time
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Union
@@ -701,6 +702,11 @@ def clear_window_invariant_cache() -> None:
     _WINDOW_INVARIANT_CACHE.clear()
 
 
+# The v1.3 oh_ax_band is Kurucz's combined OH list: its A-X lines plus every
+# Goldman X-X line that oh_xx_band also holds.
+_COMBINED_OH_AX_LINE_COUNT = 81_817
+
+
 def _molecular_compiled_cache_contract(
     start_wavelength_nm: float,
     end_wavelength_nm: float,
@@ -719,11 +725,26 @@ def _molecular_compiled_cache_contract(
             "PAYNE_ZERO_SYNTHESIS_MOLECULAR_COMPILED_CACHE", "1"
         ) not in ("0", "false", "False", "no", "off", "")
 
+    from . import source_catalog_molecular_compiler as mc
+
     molecular_source_dir = runtime_paths.source_catalog_path("molecules")
     source_paths = (
         molecular_source_dir / "molecular_band_lines.npz",
         molecular_source_dir / "titanium_oxide_lines.npy",
     )
+    # The manifest selects and orders the compiled bands, so a manifest-only
+    # edit must not reuse a product compiled from a different band set.  A
+    # missing manifest stays in the identity; the rebuild then fails with
+    # the original useful context.
+    try:
+        text_bands = [
+            str(entry["band"])
+            for entry in json.loads(
+                (molecular_source_dir / "manifest.json").read_text()
+            )["text_sources"]
+        ]
+    except (OSError, ValueError, KeyError, TypeError):
+        text_bands = None
     checksums_path = molecular_source_dir.parent / "CHECKSUMS.sha256"
     source_checksums: dict[str, str] = {}
     if checksums_path.is_file():
@@ -767,6 +788,8 @@ def _molecular_compiled_cache_contract(
         "resolution": float(resolution),
         "use_energy_level_wavelengths": True,
         "compiler": "payne_zero_synthesis.source_catalog_molecular_compiler",
+        "dispatch": mc.molecular_dispatch_digest(),
+        "text_bands": text_bands,
         "files": source_file_identity,
     }
     if not cache_enabled:
@@ -1237,6 +1260,24 @@ class SynthesisPipeline:
             (molecular_source_dir / "manifest.json").read_text()
         )
         band_names = [entry["band"] for entry in molecular_manifest["text_sources"]]
+        line_counts = {
+            entry["band"]: entry.get("line_count")
+            for entry in molecular_manifest["text_sources"]
+        }
+        if (
+            "oh_xx_band" in line_counts
+            and line_counts.get("oh_ax_band") == _COMBINED_OH_AX_LINE_COUNT
+        ):
+            warnings.warn(
+                f"{molecular_source_dir / 'manifest.json'} lists oh_xx_band, "
+                "but this oh_ax_band already contains every oh_xx_band line, "
+                "so OH X-X opacity is counted twice. Copy "
+                "source_catalogs/molecules/manifest.json and "
+                "source_catalogs/CHECKSUMS.sha256 from the repository into "
+                "this data root.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
         text_catalog = mc.compile_molecular_text(
             band_catalog_path=band_catalog_path,
             band_names=band_names,

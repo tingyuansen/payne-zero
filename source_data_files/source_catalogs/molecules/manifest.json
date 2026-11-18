@@ -128,11 +128,6 @@
       "band": "oh_ax_band"
     },
     {
-      "provenance": "ohxx.dat",
-      "line_count": 55468,
-      "band": "oh_xx_band"
-    },
-    {
       "provenance": "sihax.dat",
       "line_count": 78286,
       "band": "sih_ax_band"

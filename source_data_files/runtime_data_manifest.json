@@ -169,12 +169,12 @@
     {
       "path": "source_catalogs/CHECKSUMS.sha256",
       "bytes": 1436,
-      "sha256": "61d3233b528a2b98e2f360b6ac795a8a948cf004c4588cbbe530ed3475ca029d"
+      "sha256": "af84663fb45b2ba36749199d8b6e188e0fa6fb98d0908cf9a627344dc1118e26"
     },
     {
       "path": "source_catalogs/molecules/manifest.json",
-      "bytes": 3884,
-      "sha256": "65131b3c07f093f062afed5547875b969da1e607dc46e3120332758d5e1c32c6"
+      "bytes": 3785,
+      "sha256": "2b18eb8755787e4d766021555f61243fe548a0767541230c5cc8743dac9a0f32"
     }
   ]
 }

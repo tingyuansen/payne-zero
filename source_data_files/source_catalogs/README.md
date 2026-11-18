@@ -22,11 +22,13 @@ The two molecular-equilibrium files belong to different physical stages and are 
 | file | use |
 | --- | --- |
 | `molecules/manifest.json` | explicit molecular compile order |
-| `molecules/molecular_band_lines.npz` | 32 molecular band systems stored as per-band array groups |
+| `molecules/molecular_band_lines.npz` | 32 molecular band systems stored as per-band array groups; the manifest compiles 31 of them |
 | `molecules/titanium_oxide_lines.npy` | Schwenke TiO packed transitions |
 | `molecules/water_lines.npy` | Partridge–Schwenke H2O packed transitions |
 
 The molecular compiler follows `manifest.json`; it does not discover inputs by filename globbing.
+
+`oh_xx_band` (Goldman X–X) stays in the archive but is not compiled. `oh_ax_band` comes from Kurucz's combined OH list, which already holds the A–X lines plus every `oh_xx_band` line. Compiling both counted OH X–X opacity twice.
 
 ## Location
 

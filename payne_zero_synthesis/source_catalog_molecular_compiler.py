@@ -170,16 +170,17 @@ def _build_airshift_table(table_size: int = 100_000) -> np.ndarray:
 # Fixed-width text source columns are decoded in `_parse_text_line()`.
 # Wavelengths are kept in nm internally so the pipeline uses one unit.
 _MOL_DISPATCH: Dict[Tuple[int, int], Tuple[int, int, int, float, float]] = {
-    # H2
+    # H2 and HD use source code 101; 240 (the species id) is kept as an alias.
+    (101, 1): (240, 1, 1, 0.0, -5.0),
+    (101, 2): (240, 1, 2, 0.0, -4.469),
     (240, 1): (240, 1, 1, 0.0, -5.0),
-    # HD
     (240, 2): (240, 1, 2, 0.0, -4.469),
     # CH
     (106, 12): (246, 1, 12, 0.0, -0.005),
     (106, 13): (246, 1, 13, 0.0, -1.955),
-    # NH
-    (114, 14): (252, 1, 14, 0.0, -0.002),
-    (114, 15): (252, 1, 15, 0.0, -2.444),
+    # NH (source code 107; 114 is SiH)
+    (107, 14): (252, 1, 14, 0.0, -0.002),
+    (107, 15): (252, 1, 15, 0.0, -2.444),
     # OH
     (108, 16): (258, 1, 16, 0.0, -0.001),
     (108, 18): (258, 1, 18, 0.0, -2.690),
@@ -250,13 +251,15 @@ _MOL_DISPATCH: Dict[Tuple[int, int], Tuple[int, int, int, float, float]] = {
     (827, 18): (576, 59, 18, 0.0, -2.690),
     # SiO
     (814, 16): (330, 28, 16, -0.035, -0.001),
-    (814, 17): (330, 29, 16, -1.328, -0.001),
-    (814, 18): (330, 30, 16, -1.510, -0.001),
+    # Isotope index 17/18 names the oxygen isotope (28Si17O, 28Si18O), as
+    # for CO, AlO and CoO; 29Si16O and 30Si16O are indices 29 and 30.
+    (814, 17): (330, 28, 17, -0.035, -3.398),
+    (814, 18): (330, 28, 18, -0.035, -2.690),
     (814, 28): (330, 28, 16, -0.035, -0.001),
     (814, 29): (330, 29, 16, -1.328, -0.001),
     (814, 30): (330, 30, 16, -1.510, -0.001),
     # MgO
-    (812, 24): (306, 24, 16, 0.0, -0.105),
+    (812, 24): (318, 24, 16, 0.0, -0.105),
 }
 
 # Principal isotope rows used when the source code alone identifies a molecule.
@@ -297,6 +300,25 @@ def _dispatch_molecule(
     if row is not None:
         return row
     return _MOL_CODE_ONLY_DISPATCH.get(source_code)
+
+
+def molecular_dispatch_digest() -> str:
+    """Digest of the species and isotope dispatch tables.
+
+    Compiled molecular caches include it, so a dispatch correction
+    invalidates products built with the previous tables.
+    """
+    payload = {
+        "isotope": sorted(
+            [list(key), list(row)] for key, row in _MOL_DISPATCH.items()
+        ),
+        "code_only": sorted(
+            [code, list(row)] for code, row in _MOL_CODE_ONLY_DISPATCH.items()
+        ),
+    }
+    return hashlib.blake2b(
+        json.dumps(payload, sort_keys=True).encode(), digest_size=12
+    ).hexdigest()
 
 
 # Molecular text line compiler.
@@ -540,7 +562,11 @@ def compile_molecular_text(
         end_wavelength_nm,
         resolution,
         "energy_levels" if use_energy_level_wavelengths else "stored",
-        extra=f"text_predicted_{include_predicted_lines}_bands_{'_'.join(band_names)}",
+        extra=(
+            f"text_predicted_{include_predicted_lines}"
+            f"_bands_{'_'.join(band_names)}"
+            f"_dispatch_{molecular_dispatch_digest()}"
+        ),
     )
     cache_dir = _molecular_cache_dir([band_catalog_path])
     cache_path = cache_dir / f"molecular_text_{cache_key}.npz"
